@@ -1,3 +1,5 @@
+#include "Windows.h"
+#include "WinBase.h"
 #include "SDL.h"
 #include "SDL_image.h"
 #include "GL/glew.h"
@@ -83,6 +85,10 @@ void Game::initialize() {
     // którymi karmimy naszą kartę.
     m_map.load("../data/map.png");
 	m_map.generate(10.0f, 10.0f);
+
+
+	//object.loadObject();
+	
 }
 
 void Game::cleanup() {
@@ -154,6 +160,8 @@ void Game::run() {
 
         // Rysujemy mapę. Magic happens here.
 		m_map.draw();
+		//object.draw();
+
 
         // Podmieniamy bufory wyświetlane przez menadżera okien.
         SDL_GL_SwapWindow(m_window);

@@ -3,22 +3,18 @@
 #include "SDL_image.h"
 using namespace std;
 
-Map::Map() : m_width(0), m_height(0), m_surface(NULL), m_vao(0), m_vbo(0)
-{
+Map::Map() : m_width(0), m_height(0), m_surface(NULL), m_vao(0), m_vbo(0){
 }
 
-Map::~Map()
-{
+Map::~Map(){
     free();
 }
 
-void Map::free()
-{
+void Map::free(){
     if (m_surface) SDL_FreeSurface(m_surface);
 }
 
-void Map::load(const char *path)
-{
+void Map::load(const char *path){
     m_path = path;
     free();
 
@@ -29,16 +25,14 @@ void Map::load(const char *path)
 
 // Kod pobierający wartość z piksela o danych koordynatach. Jeżeli
 // dojdą kanały RGB etc. Trzeba będzie to lekko zmodyfikować.
-unsigned char Map::getPixel(unsigned int x, unsigned int y)
-{
+unsigned char Map::getPixel(unsigned int x, unsigned int y){
 	unsigned char bpp = m_surface->format->BytesPerPixel;
 	return static_cast<unsigned char*>(m_surface->pixels)
 		                              [y * m_surface->pitch + x * bpp];
 }
 
 // Funkcja dodaje jeden wierzchołek do listy zmiennych float.
-void Map::addPoint(unsigned int x, unsigned int y)
-{
+void Map::addPoint(unsigned int x, unsigned int y){
 	float pw = m_width / m_surface->w;
 	float ph = m_height / m_surface->h;
 	m_vertices.push_back(x*pw);
