@@ -1,6 +1,6 @@
 # Game in OpenGL 3
 
-Use `scons` to compile game.
+Use `scons` to compile game :)
 
 Required libraries are:
 1. SDL2
