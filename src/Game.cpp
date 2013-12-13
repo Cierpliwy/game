@@ -146,7 +146,7 @@ void Game::run() {
         // do shaderów.
         glUniformMatrix4fv(m_MVPLocation, 1, GL_FALSE, value_ptr(MVP));
         glUniform2f(m_lightLocation, pos.x, pos.y);
-        glUniform1f(m_lightSizeLocation, delta * 50.0f);
+        glUniform1f(m_lightSizeLocation, delta * 50.0f*2);
 
         // Czyścimy ekran na czarno
         glClearColor(0,0,0,0);
