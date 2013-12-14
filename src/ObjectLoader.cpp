@@ -6,7 +6,7 @@ ObjectLoader::ObjectLoader(void)
 }
 
 bool ObjectLoader::loadSimpleObject(const char * path, 
-                                    vector<ObjectVertex> &vertices)                               
+                                    vector<ObjectVertex> &vertices, Texture &texture)                               
 {
     std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
     std::vector<glm::vec3> temp_vertices; 
@@ -63,6 +63,11 @@ bool ObjectLoader::loadSimpleObject(const char * path,
             normalIndices.push_back(normalIndex[0]);
             normalIndices.push_back(normalIndex[1]);
             normalIndices.push_back(normalIndex[2]);
+        }else if(strcmp( lineHeader, "usemtl" ) == 0){
+            fscanf(file, "%s", lineHeader);
+            string tmp(PATH_TO_DATA);
+            tmp +=lineHeader;
+            texture.load(tmp.c_str());
         }else{
             // Probably a comment, eat up the rest of the line
             char stupidBuffer[1000];
