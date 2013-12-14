@@ -48,6 +48,9 @@ void Game::initialize() {
     if (err != GLEW_OK) 
         throw GameException(GameException::GLEW, "Init", err);
 
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
     m_vertex.load("../data/vertex.glsl");
     m_vertex.compile();
     m_fragment.load("../data/fragment.glsl");
@@ -61,12 +64,11 @@ void Game::initialize() {
     m_MVPLocation = m_program.getUniformLocation("MVP");
     m_lightLocation = m_program.getUniformLocation("light");
     m_lightSizeLocation = m_program.getUniformLocation("lightSize");
+    m_textureLocation = m_program.getUniformLocation("texSampler");
 
-    m_map.load("../data/map.png");
-    m_map.generate(10.0f, 10.0f);
-
-
-    //object.loadObject();
+    m_map.load("../data/map");
+    m_map.generate(5.0f);
+    object.loadObject();
 }
 
 void Game::cleanup() {
@@ -109,19 +111,26 @@ void Game::run() {
         float height = 1.0f;
         float width = height * ratio;
 
-        mat4 projection = ortho(-1 * width, width, -1 * height, height); 
-        mat4 view = glm::lookAt(vec3(pos, 1.0f), vec3(pos, 0.0f), vec3(0,1,0));
-        mat4 MVP = projection * view;
+        glm::mat4 projection = ortho(-1 * width, width,
+                                     -1 * height, height,
+                                     -100.0f, 100.0f); 
+
+        glm::mat4 view = glm::lookAt(vec3(pos, 1.0f), vec3(pos, 0.0f), vec3(0,1,0));
+        glm::mat4 MVP = projection * view;
 
         glUniformMatrix4fv(m_MVPLocation, 1, GL_FALSE, value_ptr(MVP));
         glUniform2f(m_lightLocation, pos.x, pos.y);
-        glUniform1f(m_lightSizeLocation, delta * 50.0f*2);
+        glUniform1f(m_lightSizeLocation, delta * 50.0f);
 
         glClearColor(0,0,0,0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        m_map.draw();
-        //object.draw();
+        m_map.draw(m_textureLocation);
+     
+        //Rotate for fun. Look at light! Why is it happening? :D
+        MVP = glm::rotate(MVP, 45.0f, glm::vec3(1.0f,1.0f,1.0f));
+        glUniformMatrix4fv(m_MVPLocation, 1, GL_FALSE, value_ptr(MVP));
+        object.draw(m_textureLocation);
 
         SDL_GL_SwapWindow(m_window);
     }

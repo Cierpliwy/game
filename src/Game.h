@@ -30,6 +30,7 @@ private:
     GLuint m_MVPLocation;
     GLuint m_lightLocation;
     GLuint m_lightSizeLocation;
+    GLuint m_textureLocation;
 };
 
 #endif //GAME_H
