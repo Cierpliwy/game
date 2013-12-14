@@ -2,7 +2,9 @@
 #include "GameException.h"
 #include "SDL_image.h"
 #include <iostream>
+#include <sstream>
 using namespace std;
+using namespace glm;
 
 Map::Map() : m_width(0), m_height(0), m_surface(NULL), m_vao(0), m_vbo(0){
 }
@@ -19,15 +21,22 @@ void Map::free(){
 
 void Map::load(const char *path){
     m_path = path;
-    m_path += "_collision.png";
+    m_path += ".png";
     free();
 
     m_surface = IMG_Load(m_path.c_str());
     if (!m_surface) 
         throw GameException(GameException::SDL_IMAGE, m_path.c_str());
 
-    std::string texPath = path;
-    texPath += "_texture.png";
+    for(unsigned int i = 0; i < 3; ++i) {
+        std::string texPath = path;
+        stringstream ss;
+        ss << path << "_bg" << i << ".png";
+        m_sprites[i].load(ss.str().c_str());
+    }
+
+    string texPath = path;
+    texPath += "_tex.png";
     m_texture.load(texPath.c_str());
 }
 
@@ -42,7 +51,7 @@ void Map::addPoint(unsigned int x, unsigned int y, float z){
     float ph = m_height / m_surface->h;
     MapVertex v;
     v.uv.x = x / static_cast<float>(m_surface->w);
-    v.uv.y = y / static_cast<float>(m_surface->h);
+    v.uv.y = y / static_cast<float>(m_surface->h) + 2*pw*z;
     v.pos.x = x*pw;
     v.pos.y = -1*(y*ph);
     v.pos.z = z;
@@ -53,6 +62,16 @@ void Map::generate(float width, float depth) {
     m_width = width;
     m_height = width * static_cast<float>(m_surface->h) / m_surface->w;
     m_vertices.clear();
+
+    float sprDepth = 0.9f;
+    for(unsigned int i = 0; i < 3; ++i) {
+        m_sprites[i].generate(Rect<vec3>(
+                    vec3(0.0f, 0.0f, sprDepth*depth),
+                    vec3(m_width, 0.0f, sprDepth*depth),
+                    vec3(m_width, -1*m_height, sprDepth*depth),
+                    vec3(0.0f, -1*m_height, sprDepth*depth)));
+        sprDepth -= 0.4f;
+    }
 
     for(int i = 0; i < m_surface->w; ++i) {
         for(int j = 0; j < m_surface->h; ++j) {
@@ -75,10 +94,14 @@ void Map::generate(float width, float depth) {
                 addPoint(i,j,0);
 
                 //Add collision lines
-                if (!(dir & 1)) m_lines.push_back(glm::vec4(i,j,i+1,j));
-                if (!(dir & 2)) m_lines.push_back(glm::vec4(i,j+1,i+1,j+1));
-                if (!(dir & 4)) m_lines.push_back(glm::vec4(i,j+1,i,j));
-                if (!(dir & 8)) m_lines.push_back(glm::vec4(i+1,j,i+1,j+1));
+                if (!(dir & 1))
+                    m_lines.push_back(Line<vec2>(vec2(i,j), vec2(i+1,j)));
+                if (!(dir & 2)) 
+                    m_lines.push_back(Line<vec2>(vec2(i,j+1), vec2(i+1,j+1)));
+                if (!(dir & 4))
+                    m_lines.push_back(Line<vec2>(vec2(i,j+1), vec2(i,j)));
+                if (!(dir & 8))
+                    m_lines.push_back(Line<vec2>(vec2(i+1,j), vec2(i+1,j+1)));
                 
             } else {
 
@@ -89,10 +112,10 @@ void Map::generate(float width, float depth) {
                     if (mask & 1) addPoint(i,j+1,0);
 
                     if ((mask & 10) == 10)
-                        m_lines.push_back(glm::vec4(i,j,i+1,j+1));
+                        m_lines.push_back(Line<vec2>(vec2(i,j), vec2(i+1,j+1)));
 
                     if ((mask & 5) == 5)
-                        m_lines.push_back(glm::vec4(i+1,j,i,j+1));
+                        m_lines.push_back(Line<vec2>(vec2(i+1,j), vec2(i,j+1)));
                 }
             }
         }
@@ -100,13 +123,14 @@ void Map::generate(float width, float depth) {
 
     // Generate floor
     for(unsigned int i=0; i < m_lines.size(); ++i) {
-        glm::vec4 p = m_lines[i];
-        addPoint(p.x, p.y, 0);
-        addPoint(p.z, p.w, 0);
-        addPoint(p.z, p.w, depth);
-        addPoint(p.z, p.w, depth);
-        addPoint(p.x, p.y, depth);
-        addPoint(p.x, p.y, 0);
+        glm::vec2 a = m_lines[i].a;
+        glm::vec2 b = m_lines[i].b;
+        addPoint(a.x, a.y, 0);
+        addPoint(b.x, b.y, 0);
+        addPoint(b.x, b.y, depth);
+        addPoint(b.x, b.y, depth);
+        addPoint(a.x, a.y, depth);
+        addPoint(a.x, a.y, 0);
     }
 
     glGenVertexArrays(1, &m_vao);
@@ -134,9 +158,17 @@ void Map::draw(GLuint texLocation)
 {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_texture.id());
-    glUniform1i(texLocation, GL_TEXTURE0);
+    glUniform1i(texLocation, 0);
 
     glBindVertexArray(m_vao);
     glDrawArrays(GL_TRIANGLES, 0, m_vertices.size());
     glBindVertexArray(0);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    for(unsigned int i = 0; i < 3; ++i)
+        m_sprites[i].draw(texLocation);
+
+    glDisable(GL_BLEND);
 }
