@@ -37,7 +37,7 @@ unsigned char Map::getPixel(unsigned int x, unsigned int y){
                                       [y * m_surface->pitch + x * bpp];
 }
 
-void Map::addPoint(unsigned int x, unsigned int y){
+void Map::addPoint(unsigned int x, unsigned int y, float z){
     float pw = m_width / m_surface->w;
     float ph = m_height / m_surface->h;
     MapVertex v;
@@ -45,39 +45,68 @@ void Map::addPoint(unsigned int x, unsigned int y){
     v.uv.y = y / static_cast<float>(m_surface->h);
     v.pos.x = x*pw;
     v.pos.y = -1*(y*ph);
-    v.pos.z = 0.0f;
+    v.pos.z = z;
     m_vertices.push_back(v);
 }
 
-void Map::generate(float width) {
+void Map::generate(float width, float depth) {
     m_width = width;
     m_height = width * static_cast<float>(m_surface->h) / m_surface->w;
     m_vertices.clear();
 
     for(int i = 0; i < m_surface->w; ++i) {
         for(int j = 0; j < m_surface->h; ++j) {
+
+            //Check neighbours
+            unsigned int mask = 0;
+            unsigned int dir = 0;
+            if (j-1 >= 0 && getPixel(i, j-1)) {mask |= 12; dir |= 1;}
+            if (j+1 < m_surface->h && getPixel(i, j+1)) {mask |= 3; dir |= 2;}
+            if (i-1 >= 0 && getPixel(i-1, j)) {mask |= 9; dir |= 4;}
+            if (i+1 < m_surface->w && getPixel(i+1, j)) {mask |= 6; dir |= 8;}
+
             if (getPixel(i,j)) {
-                addPoint(i,j);
-                addPoint(i+1,j);
-                addPoint(i+1,j+1);
-                addPoint(i+1,j+1);
-                addPoint(i,j+1);
-                addPoint(i,j);
+
+                addPoint(i,j,0);
+                addPoint(i+1,j,0);
+                addPoint(i+1,j+1,0);
+                addPoint(i+1,j+1,0);
+                addPoint(i,j+1,0);
+                addPoint(i,j,0);
+
+                //Add collision lines
+                if (!(dir & 1)) m_lines.push_back(glm::vec4(i,j,i+1,j));
+                if (!(dir & 2)) m_lines.push_back(glm::vec4(i,j+1,i+1,j+1));
+                if (!(dir & 4)) m_lines.push_back(glm::vec4(i,j+1,i,j));
+                if (!(dir & 8)) m_lines.push_back(glm::vec4(i+1,j,i+1,j+1));
+                
             } else {
-                unsigned char mask = 0;
-                if (j-1 >= 0 && getPixel(i, j-1)) mask |= 12;
-                if (j+1 < m_surface->h && getPixel(i, j+1)) mask |= 3;
-                if (i-1 >= 0 && getPixel(i-1, j)) mask |= 9;
-                if (i+1 < m_surface->w && getPixel(i+1, j)) mask |= 6;
 
                 if (mask == 14 || mask == 13 || mask == 11 || mask == 7) {
-                    if (mask & 8) addPoint(i,j);
-                    if (mask & 4) addPoint(i+1,j);
-                    if (mask & 2) addPoint(i+1,j+1);
-                    if (mask & 1) addPoint(i,j+1);
+                    if (mask & 8) addPoint(i,j,0);
+                    if (mask & 4) addPoint(i+1,j,0);
+                    if (mask & 2) addPoint(i+1,j+1,0);
+                    if (mask & 1) addPoint(i,j+1,0);
+
+                    if ((mask & 10) == 10)
+                        m_lines.push_back(glm::vec4(i,j,i+1,j+1));
+
+                    if ((mask & 5) == 5)
+                        m_lines.push_back(glm::vec4(i+1,j,i,j+1));
                 }
             }
         }
+    }
+
+    // Generate floor
+    for(unsigned int i=0; i < m_lines.size(); ++i) {
+        glm::vec4 p = m_lines[i];
+        addPoint(p.x, p.y, 0);
+        addPoint(p.z, p.w, 0);
+        addPoint(p.z, p.w, depth);
+        addPoint(p.z, p.w, depth);
+        addPoint(p.x, p.y, depth);
+        addPoint(p.x, p.y, 0);
     }
 
     glGenVertexArrays(1, &m_vao);

@@ -13,7 +13,7 @@ public:
     Map();
     ~Map();
     void load(const char *path);
-    void generate(float width);
+    void generate(float width, float depth);
 	void draw(GLuint texLocation);
 
 private:
@@ -30,8 +30,9 @@ private:
 
     void free();
 	unsigned char getPixel(unsigned int x, unsigned int y);
-	void addPoint(unsigned int x, unsigned int y);
+	void addPoint(unsigned int x, unsigned int y, float z);
 
+    std::vector<glm::vec4> m_lines;
     float m_width;
     float m_height;
     std::string m_path;

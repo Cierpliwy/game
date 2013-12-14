@@ -67,7 +67,7 @@ void Game::initialize() {
     m_textureLocation = m_program.getUniformLocation("texSampler");
 
     m_map.load("../data/map");
-    m_map.generate(5.0f);
+    m_map.generate(5.0f, -1.0f);
     object.loadObject();
 }
 
@@ -108,14 +108,10 @@ void Game::run() {
         int w,h;
         SDL_GetWindowSize(m_window, &w, &h);
         float ratio = static_cast<float>(w)/h;
-        float height = 1.0f;
-        float width = height * ratio;
 
-        glm::mat4 projection = ortho(-1 * width, width,
-                                     -1 * height, height,
-                                     -100.0f, 100.0f); 
+        glm::mat4 projection = glm::perspective(45.0f, ratio, 0.1f, 100.0f);
 
-        glm::mat4 view = glm::lookAt(vec3(pos, 1.0f), vec3(pos, 0.0f), vec3(0,1,0));
+        glm::mat4 view = glm::lookAt(vec3(pos, 5.0f), vec3(pos, 0.0f), vec3(0,1,0));
         glm::mat4 MVP = projection * view;
 
         glUniformMatrix4fv(m_MVPLocation, 1, GL_FALSE, value_ptr(MVP));
