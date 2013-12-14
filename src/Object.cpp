@@ -8,11 +8,9 @@ Object::Object(const char* mesh_path){
 
 bool Object::loadObject(){
 
-    if(!ObjectLoader::loadSimpleObject(mesh_path, vertices)){
+    if(!ObjectLoader::loadSimpleObject(mesh_path, vertices, texture)){
         return false;
     }
-
-    texture.load("../data/cube.png");
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
@@ -47,7 +45,7 @@ void Object::draw(GLuint texLocation)
 {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture.id());
-    glUniform1i(texLocation, GL_TEXTURE0);
+    glUniform1i(texLocation, 0);
 
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, vertices.size());

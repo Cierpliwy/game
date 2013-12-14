@@ -2,10 +2,11 @@
 
 #include <vector>
 #include <stdio.h>
+#include "Texture.h"
 #include <string>
 #include <cstring>
 #include <glm/glm.hpp>
-
+#define PATH_TO_DATA "../data/"
 struct ObjectVertex
 {
     glm::vec3 position;
@@ -25,7 +26,7 @@ public:
     ObjectLoader(void);
 
     static bool loadSimpleObject(const char * path, 
-                                 std::vector<ObjectVertex> &vertices);
+                                 std::vector<ObjectVertex> &vertices, Texture &texture);
     ~ObjectLoader(void);
 };
 
