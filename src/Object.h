@@ -2,13 +2,15 @@
 
 #include "ObjectLoader.h"
 #include "Texture.h"
+#include "CollisionInterface.h"
 #include <GL/glew.h>
 #include <stdio.h>
 #include <string.h>
+using namespace std;
 
-class Object
+class Object: public CollisionInterface
 {
-    char mesh_path[200];
+    string mesh_path;
     GLuint vbo;
     GLuint vao;
     GLuint uvbuffer;

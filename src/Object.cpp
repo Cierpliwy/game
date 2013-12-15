@@ -1,14 +1,12 @@
 #include "Object.h"
-#include <iostream>
-using namespace std;
 
 Object::Object(const char* mesh_path){
-    strcpy (this->mesh_path,mesh_path);
+    this->mesh_path = mesh_path;
 }
 
 bool Object::loadObject(){
 
-    if(!ObjectLoader::loadSimpleObject(mesh_path, vertices, texture)){
+    if(!ObjectLoader::loadSimpleObject(mesh_path.c_str(), vertices, texture)){
         return false;
     }
 

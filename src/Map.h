@@ -96,6 +96,8 @@ private:
     
     // Collision data
     std::vector<Line<glm::vec2> > m_lines;
+
+    std::vector<Object> objects;
 };
 
 #endif //MAP_H
