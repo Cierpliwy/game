@@ -6,17 +6,24 @@
 using namespace std;
 using namespace glm;
 
-Map::Map() : m_width(0), m_height(0), m_surface(NULL), m_vao(0), m_vbo(0) {
+Map::Map() : m_width(0), m_height(0), m_vao(0), m_vbo(0),
+             m_gridVao(0), m_gridVbo(0), m_surface(NULL)
+{
 }
 
 Map::~Map(){
-    free();
+    free(true);
 }
 
-void Map::free(){
-    if (m_surface) SDL_FreeSurface(m_surface);
+void Map::free(bool freeSurface){
+    if (freeSurface && m_surface) SDL_FreeSurface(m_surface);
     if (m_vao) glDeleteVertexArrays(1, &m_vao);
     if (m_vbo) glDeleteBuffers(1, &m_vbo);
+    if (m_gridVao) glDeleteVertexArrays(1, &m_gridVao);
+    if (m_gridVbo) glDeleteBuffers(1, &m_gridVbo);
+    m_vertices.clear();
+    m_gridVertices.clear();
+    m_lines.clear();
 }
 
 void Map::load(const char *path){
@@ -24,7 +31,7 @@ void Map::load(const char *path){
     // Load collision map
     m_path = path;
     m_path += ".png";
-    free();
+    free(true);
 
     m_surface = IMG_Load(m_path.c_str());
     if (!m_surface || !m_surface->format->palette) 
@@ -116,17 +123,13 @@ void Map::addFloor(unsigned int x1, int unsigned y1,
 void Map::generate(float width, float depth, float uvFix) 
 {
     // Clear all data excluding bitmaps
-    if (m_vao) glDeleteVertexArrays(1, &m_vao);
-    if (m_vbo) glDeleteBuffers(1, &m_vbo);
-    m_vertices.clear();
-    m_lines.clear();
+    free(false);
 
     // Get ratio from bitmap
     m_width = width;
     m_height = width * static_cast<float>(m_surface->h) / m_surface->w;
     m_depth = depth;
     m_uvFix = uvFix;
-    m_vertices.clear();
 
     // Generate sprites
     float sprDepth = 0.9f;
@@ -239,23 +242,56 @@ void Map::generate(float width, float depth, float uvFix)
     
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    // Grid data for OpenGL
+    for(unsigned int i = 0; i < m_lines.size(); ++i) {
+        m_gridVertices.push_back(vec3(m_lines[i].a,0.0f));
+        m_gridVertices.push_back(vec3(m_lines[i].b,0.0f));
+    }
+
+    glGenVertexArrays(1, &m_gridVao);
+    glBindVertexArray(m_gridVao);
+
+    glGenBuffers(1, &m_gridVbo);
+    glBindBuffer(GL_ARRAY_BUFFER, m_gridVbo);
+
+    glBufferData(GL_ARRAY_BUFFER, m_gridVertices.size() * sizeof(vec3),
+                 &m_gridVertices[0], GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(0);
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void Map::draw(GLuint texLocation)
+void Map::draw(GLuint texLocation, unsigned int target)
 {
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_texture.id());
-    glUniform1i(texLocation, 0);
+    if (target & MAP) {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, m_texture.id());
+        glUniform1i(texLocation, 0);
 
-    glBindVertexArray(m_vao);
-    glDrawArrays(GL_TRIANGLES, 0, m_vertices.size());
-    glBindVertexArray(0);
+        glBindVertexArray(m_vao);
+        glDrawArrays(GL_TRIANGLES, 0, m_vertices.size());
+        glBindVertexArray(0);
+    }
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    if (target & SPRITES) {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    for(unsigned int i = 0; i < 3; ++i)
-        m_sprites[i].draw(texLocation);
+        for(unsigned int i = 0; i < 3; ++i)
+            m_sprites[i].draw(texLocation);
 
-    glDisable(GL_BLEND);
+        glDisable(GL_BLEND);
+    }
+
+    if (target & GRID) {
+        glDisable(GL_DEPTH_TEST);
+        glBindVertexArray(m_gridVao);
+        glDrawArrays(GL_LINES, 0, m_gridVertices.size()); 
+        glBindVertexArray(0);
+        glEnable(GL_DEPTH_TEST);
+    }
 }
