@@ -10,7 +10,7 @@ public:
     Texture(void);
 	~Texture(void);
 
-	void load(const char *filePath);
+	void load(const char *filePath, unsigned w = 0, unsigned h = 0);
     void free();
     GLuint id() { return m_id; }
 

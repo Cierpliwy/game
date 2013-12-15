@@ -19,18 +19,19 @@ void Sprite::load(const char *filePath)
 
 void Sprite::generate(Rect<glm::vec3> rect)
 {
+    // Y or V is flipped by loading from SDL
     vertices[0].position = rect.a;
-    vertices[0].uv = glm::vec2(0.0f,0.0f);
+    vertices[0].uv = glm::vec2(0.0f,1.0f);
     vertices[1].position = rect.b;
-    vertices[1].uv = glm::vec2(1.0f,0.0f);
+    vertices[1].uv = glm::vec2(1.0f,1.0f);
     vertices[2].position = rect.c;
-    vertices[2].uv = glm::vec2(1.0f,1.0f);
+    vertices[2].uv = glm::vec2(1.0f,0.0f);
     vertices[3].position = rect.c;
-    vertices[3].uv = glm::vec2(1.0f,1.0f);
+    vertices[3].uv = glm::vec2(1.0f,0.0f);
     vertices[4].position = rect.d;
-    vertices[4].uv = glm::vec2(0.0f,1.0f);
+    vertices[4].uv = glm::vec2(0.0f,0.0f);
     vertices[5].position = rect.a;
-    vertices[5].uv = glm::vec2(0.0f,0.0f);
+    vertices[5].uv = glm::vec2(0.0f,1.0f);
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);

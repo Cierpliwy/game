@@ -6,7 +6,7 @@
 using namespace std;
 using namespace glm;
 
-Map::Map() : m_width(0), m_height(0), m_surface(NULL), m_vao(0), m_vbo(0){
+Map::Map() : m_width(0), m_height(0), m_surface(NULL), m_vao(0), m_vbo(0) {
 }
 
 Map::~Map(){
@@ -20,14 +20,17 @@ void Map::free(){
 }
 
 void Map::load(const char *path){
+
+    // Load collision map
     m_path = path;
     m_path += ".png";
     free();
 
     m_surface = IMG_Load(m_path.c_str());
-    if (!m_surface) 
+    if (!m_surface || !m_surface->format->palette) 
         throw GameException(GameException::SDL_IMAGE, m_path.c_str());
 
+    // Load sprites textures
     for(unsigned int i = 0; i < 3; ++i) {
         std::string texPath = path;
         stringstream ss;
@@ -35,6 +38,7 @@ void Map::load(const char *path){
         m_sprites[i].load(ss.str().c_str());
     }
 
+    // Load map texture
     string texPath = path;
     texPath += "_tex.png";
     m_texture.load(texPath.c_str());
@@ -42,97 +46,180 @@ void Map::load(const char *path){
 
 unsigned char Map::getPixel(unsigned int x, unsigned int y){
     unsigned char bpp = m_surface->format->BytesPerPixel;
-    return !static_cast<unsigned char*>(m_surface->pixels)
-                                      [y * m_surface->pitch + x * bpp];
+    unsigned char i = static_cast<unsigned char*>(m_surface->pixels)
+                                 [y * m_surface->pitch + x * bpp];
+    return !m_surface->format->palette->colors[i].r;
 }
 
-void Map::addPoint(unsigned int x, unsigned int y, float z){
-    float pw = m_width / m_surface->w;
-    float ph = m_height / m_surface->h;
-    MapVertex v;
-    v.uv.x = x / static_cast<float>(m_surface->w);
-    v.uv.y = y / static_cast<float>(m_surface->h) + 2*pw*z;
-    v.pos.x = x*pw;
-    v.pos.y = -1*(y*ph);
-    v.pos.z = z;
-    m_vertices.push_back(v);
+vec2 Map::getPos(unsigned int x, unsigned int y)
+{
+    vec2 pos;
+    pos.x = x * m_width / m_surface->w;
+    pos.y = (m_surface->h - y) * m_height / m_surface->h; 
+    return pos;
 }
 
-void Map::generate(float width, float depth) {
+glm::vec2 Map::getUV(unsigned int x, unsigned int y)
+{
+    // Remember that V or Y is flipped by loading from SDL
+    vec2 pos;
+    pos.x = x / static_cast<float>(m_surface->w);
+    pos.y = y / static_cast<float>(m_surface->h); 
+    return pos;
+}
+
+void Map::addFilledTriangle(unsigned int x1, unsigned int y1,
+                            unsigned int x2, unsigned int y2,
+                            unsigned int x3, unsigned int y3)
+{
+    MapVertex v1,v2,v3;
+    v1.pos = vec3(getPos(x1,y1),0.0f);
+    v2.pos = vec3(getPos(x2,y2),0.0f);
+    v3.pos = vec3(getPos(x3,y3),0.0f);
+    v1.uv = getUV(x1,y1);
+    v2.uv = getUV(x2,y2);
+    v3.uv = getUV(x3,y3);
+    m_vertices.push_back(v1);
+    m_vertices.push_back(v2);
+    m_vertices.push_back(v3);
+}
+
+void Map::addFloor(unsigned int x1, int unsigned y1,
+              unsigned int x2, int unsigned y2,
+              float uvx, float uvy)
+{
+    MapVertex v1,v2,v3,v4;
+    v1.pos = vec3(getPos(x1,y1),0.0f);
+    v2.pos = vec3(getPos(x2,y2),0.0f);
+    v1.uv = getUV(x1,y1);
+    v2.uv = getUV(x2,y2);
+    v3 = v2;
+    v4 = v1;
+    v3.pos.z = m_depth;
+    v4.pos.z = m_depth;
+    
+    // Update UVs for far points
+    float sqrSize = m_width / m_surface->w;
+    v3.uv.x += uvx * m_uvFix * sqrSize;
+    v3.uv.y += uvy * m_uvFix * sqrSize;
+    v4.uv.x += uvx * m_uvFix * sqrSize;
+    v4.uv.y += uvy * m_uvFix * sqrSize;
+
+    m_vertices.push_back(v1);
+    m_vertices.push_back(v2);
+    m_vertices.push_back(v3);
+    m_vertices.push_back(v3);
+    m_vertices.push_back(v4);
+    m_vertices.push_back(v1);
+}
+
+void Map::generate(float width, float depth, float uvFix) 
+{
+    // Clear all data excluding bitmaps
+    if (m_vao) glDeleteVertexArrays(1, &m_vao);
+    if (m_vbo) glDeleteBuffers(1, &m_vbo);
+    m_vertices.clear();
+    m_lines.clear();
+
+    // Get ratio from bitmap
     m_width = width;
     m_height = width * static_cast<float>(m_surface->h) / m_surface->w;
+    m_depth = depth;
+    m_uvFix = uvFix;
     m_vertices.clear();
 
+    // Generate sprites
     float sprDepth = 0.9f;
     for(unsigned int i = 0; i < 3; ++i) {
         m_sprites[i].generate(Rect<vec3>(
                     vec3(0.0f, 0.0f, sprDepth*depth),
                     vec3(m_width, 0.0f, sprDepth*depth),
-                    vec3(m_width, -1*m_height, sprDepth*depth),
-                    vec3(0.0f, -1*m_height, sprDepth*depth)));
+                    vec3(m_width, m_height, sprDepth*depth),
+                    vec3(0.0f, m_height, sprDepth*depth)));
         sprDepth -= 0.4f;
     }
 
+    // Process pixels
     for(int i = 0; i < m_surface->w; ++i) {
         for(int j = 0; j < m_surface->h; ++j) {
 
-            //Check neighbours
-            unsigned int mask = 0;
+            // Check neighbours
+            unsigned int sqrPts = 0;
             unsigned int dir = 0;
-            if (j-1 >= 0 && getPixel(i, j-1)) {mask |= 12; dir |= 1;}
-            if (j+1 < m_surface->h && getPixel(i, j+1)) {mask |= 3; dir |= 2;}
-            if (i-1 >= 0 && getPixel(i-1, j)) {mask |= 9; dir |= 4;}
-            if (i+1 < m_surface->w && getPixel(i+1, j)) {mask |= 6; dir |= 8;}
+            if (j-1 >= 0 && getPixel(i, j-1)) {
+                sqrPts |= UPLEFT | UPRIGHT; 
+                dir |= UP;
+            }
+            if (j+1 < m_surface->h && getPixel(i, j+1)) {
+                sqrPts |= DOWNLEFT | DOWNRIGHT; 
+                dir |= DOWN;
+            }
+            if (i-1 >= 0 && getPixel(i-1, j)) 
+            {
+                sqrPts |= UPLEFT | DOWNLEFT; 
+                dir |= LEFT;
+            }
+            if (i+1 < m_surface->w && getPixel(i+1, j)) {
+                sqrPts |= UPRIGHT | DOWNRIGHT;
+                dir |= RIGHT;
+            }
 
+            // If pixel is filled just add square to map
             if (getPixel(i,j)) {
 
-                addPoint(i,j,0);
-                addPoint(i+1,j,0);
-                addPoint(i+1,j+1,0);
-                addPoint(i+1,j+1,0);
-                addPoint(i,j+1,0);
-                addPoint(i,j,0);
+                addFilledTriangle(i,j,i+1,j,i+1,j+1);
+                addFilledTriangle(i+1,j+1,i,j+1,i,j);
 
-                //Add collision lines
-                if (!(dir & 1))
+                // Add collision lines
+                if (!(dir & UP)) 
                     m_lines.push_back(Line<vec2>(vec2(i,j), vec2(i+1,j)));
-                if (!(dir & 2)) 
-                    m_lines.push_back(Line<vec2>(vec2(i,j+1), vec2(i+1,j+1)));
-                if (!(dir & 4))
+                if (!(dir & DOWN)) 
+                    m_lines.push_back(Line<vec2>(vec2(i+1,j+1), vec2(i,j+1)));
+                if (!(dir & LEFT)) 
                     m_lines.push_back(Line<vec2>(vec2(i,j+1), vec2(i,j)));
-                if (!(dir & 8))
+                if (!(dir & RIGHT)) 
                     m_lines.push_back(Line<vec2>(vec2(i+1,j), vec2(i+1,j+1)));
                 
             } else {
+                // Try to anti alias edges
+                vector<vec2> points;
+                if (sqrPts & UPLEFT) points.push_back(vec2(i,j));
+                if (sqrPts & UPRIGHT) points.push_back(vec2(i+1,j));
+                if (sqrPts & DOWNRIGHT) points.push_back(vec2(i+1,j+1));
+                if (sqrPts & DOWNLEFT) points.push_back(vec2(i,j+1));
+                if (points.size() == 3) {
+                    //We can add filling rectangle to smooth it out.
+                    addFilledTriangle(points[0].x, points[0].y,
+                                      points[1].x, points[1].y,
+                                      points[2].x, points[2].y);
 
-                if (mask == 14 || mask == 13 || mask == 11 || mask == 7) {
-                    if (mask & 8) addPoint(i,j,0);
-                    if (mask & 4) addPoint(i+1,j,0);
-                    if (mask & 2) addPoint(i+1,j+1,0);
-                    if (mask & 1) addPoint(i,j+1,0);
-
-                    if ((mask & 10) == 10)
-                        m_lines.push_back(Line<vec2>(vec2(i,j), vec2(i+1,j+1)));
-
-                    if ((mask & 5) == 5)
-                        m_lines.push_back(Line<vec2>(vec2(i+1,j), vec2(i,j+1)));
+                    // Add collision lines
+                    m_lines.push_back(Line<vec2>(points[0], points[1]));
+                    m_lines.push_back(Line<vec2>(points[1], points[2]));
+                    m_lines.push_back(Line<vec2>(points[2], points[0]));
                 }
             }
         }
     }
 
-    // Generate floor
-    for(unsigned int i=0; i < m_lines.size(); ++i) {
-        glm::vec2 a = m_lines[i].a;
-        glm::vec2 b = m_lines[i].b;
-        addPoint(a.x, a.y, 0);
-        addPoint(b.x, b.y, 0);
-        addPoint(b.x, b.y, depth);
-        addPoint(b.x, b.y, depth);
-        addPoint(a.x, a.y, depth);
-        addPoint(a.x, a.y, 0);
+    // Generate floor from collision lines and transform them to
+    // local map coordinates.
+    for(unsigned int i = 0; i < m_lines.size(); ++i) {
+        Line<vec2> l = m_lines[i];
+        float uvx = 0.0f, uvy = 0.0f;
+
+        if (l.a.x < l.b.x) uvy = -1.0f; 
+        if (l.a.x > l.b.x) uvy = 1.0f; 
+        if (l.a.y > l.b.y) uvx = -1.0f;
+        if (l.a.y < l.b.y) uvx = 1.0f;
+
+        addFloor(l.a.x, l.a.y, l.b.x, l.b.y, uvx, uvy);
+        
+        m_lines[i].a = getPos(l.a.x, l.a.y);
+        m_lines[i].b = getPos(l.b.x, l.b.y);
     }
 
+    // Sending data to OpenGL
     glGenVertexArrays(1, &m_vao);
     glBindVertexArray(m_vao);
 

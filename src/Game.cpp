@@ -67,8 +67,8 @@ void Game::initialize() {
     m_lightSizeLocation = m_program.getUniformLocation("lightSize");
     m_textureLocation = m_program.getUniformLocation("texSampler");
 
-    m_map.load("../data/map");
-    m_map.generate(7.0f, -1.0f);
+    m_map.load("../data/fire/map");
+    m_map.generate(7.0f, -1.0f, 2.0f);
     object.loadObject();
 }
 
@@ -115,9 +115,11 @@ void Game::run() {
         glm::mat4 view = glm::lookAt(vec3(pos, 5.0f), vec3(pos, 0.0f), vec3(0,1,0));
         glm::mat4 MVP = projection * view;
 
+        static float angle = 45.0f;
+
         glUniformMatrix4fv(m_MVPLocation, 1, GL_FALSE, value_ptr(MVP));
         glUniform2f(m_lightLocation, pos.x, pos.y);
-        glUniform1f(m_lightSizeLocation, delta * 100.0f);
+        glUniform1f(m_lightSizeLocation, sin(angle*0.1f)*0.08f + 1.8f);
 
         glClearColor(0,0,0,0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -125,7 +127,6 @@ void Game::run() {
         m_map.draw(m_textureLocation);
      
         //Rotate for fun. Look at light! Why is it happening? :D
-        static float angle = 45.0f;
         angle += delta * 45.0f;
         MVP = glm::scale(MVP, glm::vec3(0.2f,0.2f,0.2f));
         MVP = glm::rotate(MVP, angle, glm::vec3(1.0f,1.0f,1.0f));
