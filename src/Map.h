@@ -25,10 +25,17 @@ public:
     void generate(float width, float depth, float uvFix);
 
     // Draw map
-	void draw(GLuint texLocation);
+	void draw(GLuint texLocation, unsigned int target);
 
     // Free all map resources
-    void free();
+    void free(bool freeSurface);
+
+    // Possible draw targets
+    enum DrawTarget {
+        MAP = 1,
+        SPRITES = 2,
+        GRID = 4
+    };
 
 private:
 
@@ -86,8 +93,11 @@ private:
     // OpenGL data
 	GLuint m_vao;
 	GLuint m_vbo;
+    GLuint m_gridVao;
+    GLuint m_gridVbo;
     GLuint m_texSampleLocation;
     std::vector<MapVertex> m_vertices;
+    std::vector<glm::vec3> m_gridVertices;
 
     // Textures
     SDL_Surface *m_surface;

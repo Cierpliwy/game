@@ -60,8 +60,16 @@ void Game::initialize() {
     m_program.setFragmentShader(m_fragment);
     m_program.setVertexShader(m_vertex);
     m_program.link();
-    m_program.use();
 
+    m_simpleVertex.load("../data/simpleVertex.glsl");
+    m_simpleVertex.compile();
+    m_simpleFragment.load("../data/simpleFragment.glsl");
+    m_simpleFragment.compile();
+    m_simpleProgram.create();
+    m_simpleProgram.setFragmentShader(m_simpleFragment);
+    m_simpleProgram.setVertexShader(m_simpleVertex);
+    m_simpleProgram.link();
+    
     m_MVPLocation = m_program.getUniformLocation("MVP");
     m_lightLocation = m_program.getUniformLocation("light");
     m_lightSizeLocation = m_program.getUniformLocation("lightSize");
@@ -96,8 +104,18 @@ void Game::run() {
                 m_exit = true;
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE)
                 m_exit = true;
-            if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_KP_ENTER)
-                SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN);
+            if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_s)
+                m_mapTarget ^= Map::SPRITES;
+            if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_g)
+                m_mapTarget ^= Map::GRID;
+            if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_c) {
+                m_map.load("../data/cold/map");
+                m_map.generate(7.0f, -1.0f, 2.0f);
+            }
+            if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_f) {
+                m_map.load("../data/fire/map");
+                m_map.generate(7.0f, -1.0f, 2.0f);
+            }
         }
 
         const Uint8 *keymap = SDL_GetKeyboardState(NULL);
@@ -117,6 +135,7 @@ void Game::run() {
 
         static float angle = 45.0f;
 
+        m_program.use();
         glUniformMatrix4fv(m_MVPLocation, 1, GL_FALSE, value_ptr(MVP));
         glUniform2f(m_lightLocation, pos.x, pos.y);
         glUniform1f(m_lightSizeLocation, sin(angle*0.1f)*0.08f + 1.8f);
@@ -124,14 +143,22 @@ void Game::run() {
         glClearColor(0,0,0,0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        m_map.draw(m_textureLocation);
+        m_map.draw(m_textureLocation, m_mapTarget & (~Map::GRID));
      
+        // Draw GRID
+        m_simpleProgram.use();
+        glUniformMatrix4fv(m_MVPLocation, 1, GL_FALSE, value_ptr(MVP));
+        if (m_mapTarget & Map::GRID)
+            m_map.draw(m_textureLocation, Map::GRID);
+
         //Rotate for fun. Look at light! Why is it happening? :D
+        m_program.use();
         angle += delta * 45.0f;
         MVP = glm::scale(MVP, glm::vec3(0.2f,0.2f,0.2f));
         MVP = glm::rotate(MVP, angle, glm::vec3(1.0f,1.0f,1.0f));
         glUniformMatrix4fv(m_MVPLocation, 1, GL_FALSE, value_ptr(MVP));
         object.draw(m_textureLocation);
+        
 
         SDL_GL_SwapWindow(m_window);
     }

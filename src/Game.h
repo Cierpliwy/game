@@ -10,7 +10,10 @@
 class Game
 {
 public:
-    Game() : m_window(NULL), m_context(NULL), m_exit(false), object("../data/cube.obj") {}
+    Game() : 
+        m_window(NULL), m_context(NULL), m_exit(false),
+        m_mapTarget(Map::MAP | Map::SPRITES | Map::GRID),
+        object("../data/cube.obj") {}
 
     void initialize();
     void run();
@@ -24,8 +27,14 @@ private:
     VertexShader m_vertex;
     FragmentShader m_fragment;
     Program m_program;
+    
+    VertexShader m_simpleVertex;
+    FragmentShader m_simpleFragment;
+    Program m_simpleProgram;
 
     Map m_map;
+    unsigned int m_mapTarget;
+
     Object object;
     GLuint m_MVPLocation;
     GLuint m_lightLocation;
