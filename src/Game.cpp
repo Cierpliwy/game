@@ -32,8 +32,8 @@ void Game::initialize() {
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
     m_window = SDL_CreateWindow("Gra", SDL_WINDOWPOS_CENTERED, 
-                                SDL_WINDOWPOS_CENTERED, 1200, 675, 
-                                SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+        SDL_WINDOWPOS_CENTERED, 1200, 675, 
+        SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
     if (!m_window) 
         throw GameException(GameException::SDL, "Window");
 
@@ -69,7 +69,7 @@ void Game::initialize() {
     m_simpleProgram.setFragmentShader(m_simpleFragment);
     m_simpleProgram.setVertexShader(m_simpleVertex);
     m_simpleProgram.link();
-    
+
     m_MVPLocation = m_program.getUniformLocation("MVP");
     m_lightLocation = m_program.getUniformLocation("light");
     m_lightSizeLocation = m_program.getUniformLocation("lightSize");
@@ -77,13 +77,32 @@ void Game::initialize() {
 
     m_map.load("../data/fire/map");
     m_map.generate(7.0f, -1.0f, 2.0f);
-    object.loadObject();
+
+    initializeWorldPhysics();
+    // initialize objects below this place
+
+    object.loadObject(this->world, "../data/cube.obj");
 }
 
+Game::~Game(){
+    if(world != NULL){
+        delete world;
+    }
+}
+void Game::initializeWorldPhysics(){
+    if(world != NULL){
+        delete world;
+    }
+    world = new b2World(b2Vec2(0.0f, 20));
+    world->SetAllowSleeping(true);    
+    world->SetContinuousPhysics(true);
+    world->SetContactListener(this); 
+
+}
 void Game::cleanup() {
     SDL_GL_DeleteContext(m_context);
     SDL_DestroyWindow(m_window);
- 
+
     IMG_Quit();
     SDL_Quit();
 }
@@ -95,9 +114,9 @@ void Game::run() {
 
     while (!m_exit) {
         delta = static_cast<float>(SDL_GetPerformanceCounter() - time) /
-                                   SDL_GetPerformanceFrequency();
+            SDL_GetPerformanceFrequency();
         time = SDL_GetPerformanceCounter();
-        
+
         SDL_Event e;
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) 
@@ -144,7 +163,7 @@ void Game::run() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         m_map.draw(m_textureLocation, m_mapTarget & (~Map::GRID));
-     
+
         // Draw GRID
         m_simpleProgram.use();
         glUniformMatrix4fv(m_MVPLocation, 1, GL_FALSE, value_ptr(MVP));
@@ -158,8 +177,23 @@ void Game::run() {
         MVP = glm::rotate(MVP, angle, glm::vec3(1.0f,1.0f,1.0f));
         glUniformMatrix4fv(m_MVPLocation, 1, GL_FALSE, value_ptr(MVP));
         object.draw(m_textureLocation);
-        
+
 
         SDL_GL_SwapWindow(m_window);
+
+        world->Step(delta,4,4);
     }
+}
+
+
+void Game::BeginContact(b2Contact * contact){
+}
+
+void Game::EndContact(b2Contact * contact){
+}	
+
+void Game::PostSolve(b2Contact * contact, const b2ContactImpulse * impulse){
+}	
+
+void Game::PreSolve(b2Contact * contact, const b2Manifold * oldManifold){
 }

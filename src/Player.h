@@ -7,7 +7,7 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 using namespace std;
-
+#include "Box2D/Box2D.h"
 #include "Object.h"
 
 class Player : public Object
@@ -19,10 +19,11 @@ class Player : public Object
 
     glm::vec3 velocity;
     glm::vec3 acceleration;
-    //bool(*checkIfCrash)(glm::vec2 pos); 
 
 public:
+    Player(){}
     Player(char * mesh_path);
+    bool loadObject(b2World * world, const char* mesh_path);
     void moveRight(float time);
     void moveLeft(float time);
     void jump();

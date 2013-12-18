@@ -7,7 +7,6 @@
 #include "Texture.h"
 #include "Utils.h"
 #include "Sprite.h"
-
 struct SDL_Surface;
 
 // Class designed for generating and displaying map from

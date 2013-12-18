@@ -7,7 +7,7 @@ using namespace std;
 using namespace glm;
 
 Map::Map() : m_width(0), m_height(0), m_vao(0), m_vbo(0),
-             m_gridVao(0), m_gridVbo(0), m_surface(NULL)
+    m_gridVao(0), m_gridVbo(0), m_surface(NULL)
 {
 }
 
@@ -54,7 +54,7 @@ void Map::load(const char *path){
 unsigned char Map::getPixel(unsigned int x, unsigned int y){
     unsigned char bpp = m_surface->format->BytesPerPixel;
     unsigned char i = static_cast<unsigned char*>(m_surface->pixels)
-                                 [y * m_surface->pitch + x * bpp];
+        [y * m_surface->pitch + x * bpp];
     return !m_surface->format->palette->colors[i].r;
 }
 
@@ -92,8 +92,8 @@ void Map::addFilledTriangle(unsigned int x1, unsigned int y1,
 }
 
 void Map::addFloor(unsigned int x1, int unsigned y1,
-              unsigned int x2, int unsigned y2,
-              float uvx, float uvy)
+                   unsigned int x2, int unsigned y2,
+                   float uvx, float uvy)
 {
     MapVertex v1,v2,v3,v4;
     v1.pos = vec3(getPos(x1,y1),0.0f);
@@ -104,7 +104,7 @@ void Map::addFloor(unsigned int x1, int unsigned y1,
     v4 = v1;
     v3.pos.z = m_depth;
     v4.pos.z = m_depth;
-    
+
     // Update UVs for far points
     float sqrSize = m_width / m_surface->w;
     v3.uv.x += uvx * m_uvFix * sqrSize;
@@ -135,10 +135,10 @@ void Map::generate(float width, float depth, float uvFix)
     float sprDepth = 0.9f;
     for(unsigned int i = 0; i < 3; ++i) {
         m_sprites[i].generate(Rect<vec3>(
-                    vec3(0.0f, 0.0f, sprDepth*depth),
-                    vec3(m_width, 0.0f, sprDepth*depth),
-                    vec3(m_width, m_height, sprDepth*depth),
-                    vec3(0.0f, m_height, sprDepth*depth)));
+            vec3(0.0f, 0.0f, sprDepth*depth),
+            vec3(m_width, 0.0f, sprDepth*depth),
+            vec3(m_width, m_height, sprDepth*depth),
+            vec3(0.0f, m_height, sprDepth*depth)));
         sprDepth -= 0.4f;
     }
 
@@ -182,7 +182,7 @@ void Map::generate(float width, float depth, float uvFix)
                     m_lines.push_back(Line<vec2>(vec2(i,j+1), vec2(i,j)));
                 if (!(dir & RIGHT)) 
                     m_lines.push_back(Line<vec2>(vec2(i+1,j), vec2(i+1,j+1)));
-                
+
             } else {
                 // Try to anti alias edges
                 vector<vec2> points;
@@ -193,8 +193,8 @@ void Map::generate(float width, float depth, float uvFix)
                 if (points.size() == 3) {
                     //We can add filling rectangle to smooth it out.
                     addFilledTriangle(points[0].x, points[0].y,
-                                      points[1].x, points[1].y,
-                                      points[2].x, points[2].y);
+                        points[1].x, points[1].y,
+                        points[2].x, points[2].y);
 
                     // Add collision lines
                     m_lines.push_back(Line<vec2>(points[0], points[1]));
@@ -217,7 +217,7 @@ void Map::generate(float width, float depth, float uvFix)
         if (l.a.y < l.b.y) uvx = 1.0f;
 
         addFloor(l.a.x, l.a.y, l.b.x, l.b.y, uvx, uvy);
-        
+
         m_lines[i].a = getPos(l.a.x, l.a.y);
         m_lines[i].b = getPos(l.b.x, l.b.y);
     }
@@ -230,16 +230,16 @@ void Map::generate(float width, float depth, float uvFix)
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 
     glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(MapVertex),
-                 &m_vertices[0], GL_STATIC_DRAW);
+        &m_vertices[0], GL_STATIC_DRAW);
 
     glVertexAttribPointer(MapVertex::POS, 3, GL_FLOAT, GL_FALSE, 
-                          sizeof(MapVertex), (void*)offsetof(MapVertex, pos));
+        sizeof(MapVertex), (void*)offsetof(MapVertex, pos));
     glEnableVertexAttribArray(MapVertex::POS);
 
     glVertexAttribPointer(MapVertex::UV, 2, GL_FLOAT, GL_FALSE, 
-                          sizeof(MapVertex), (void*)offsetof(MapVertex, uv));
+        sizeof(MapVertex), (void*)offsetof(MapVertex, uv));
     glEnableVertexAttribArray(MapVertex::UV);
-    
+
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -256,7 +256,7 @@ void Map::generate(float width, float depth, float uvFix)
     glBindBuffer(GL_ARRAY_BUFFER, m_gridVbo);
 
     glBufferData(GL_ARRAY_BUFFER, m_gridVertices.size() * sizeof(vec3),
-                 &m_gridVertices[0], GL_STATIC_DRAW);
+        &m_gridVertices[0], GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
