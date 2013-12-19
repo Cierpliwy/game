@@ -3,7 +3,7 @@
 void Object::createPhysics(b2World * world){
     //down_left up_left up_right down_right
     b2Vec2 vertices_tmp[4];
-    for(ObjectVertex i : vertices){
+    for(ObjectVertex &i : vertices){
         if(vertices_tmp[0].x > i.position.x){
             vertices_tmp[0].x = i.position.x;
             vertices_tmp[1].x = i.position.x;

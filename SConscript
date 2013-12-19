@@ -1,4 +1,6 @@
 env = Environment()
+env.Append(CXXFLAGS='-std=c++11')
 env.ParseConfig('pkg-config --cflags --libs sdl2 glew gl glu')
 env.Append(LIBS = 'SDL2_image')
+env.Append(LIBS = 'Box2D')
 env.Program('GameExe', Glob('./src/*.cpp'))
