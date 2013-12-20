@@ -81,7 +81,7 @@ void Game::initialize() {
     initializeWorldPhysics();
     // initialize objects below this place
 
-    object.loadObject(this->world, "../data/cube.obj");
+    object.loadMesh("../data/cube.obj");
 }
 
 Game::~Game(){

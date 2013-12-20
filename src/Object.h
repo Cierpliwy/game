@@ -24,17 +24,23 @@ class Object
 
     std::vector<ObjectVertex> vertices;
     Texture texture;
-    virtual void createPhysics(b2World * world);
 
 protected:
     b2Body* body;
+    const b2World * world;
 
 public:
 
     Object(){}
     Object(const char* mesh_path);
 
-    virtual bool loadObject(b2World * world, const char* mesh_path = NULL);
+    //always load mesh before setting physics !!!
+    virtual bool loadMesh(const char* mesh_path = NULL);
+
+    //sets physics of the body - position, width, height (if set to 0 it will take measures from mesh, and if it is dynamic, or static)
+    virtual void setPhysics(b2World * world, int pos_x, int pos_y, int width = 0, int height = 0, bool dynamic = true);
+
+    //call draw only adter loadMesh and setPhysics !!!
     void draw(GLuint texLocation);
 
     void setPosition(glm::vec2 &position){this->position = position;}

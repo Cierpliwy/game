@@ -23,7 +23,6 @@ class Player : public Object
 public:
     Player(){}
     Player(char * mesh_path);
-    bool loadObject(b2World * world, const char* mesh_path);
     void moveRight(float time);
     void moveLeft(float time);
     void jump();

@@ -1,8 +1,10 @@
 #include "Object.h"
 
-void Object::createPhysics(b2World * world){
+void Object::setPhysics(b2World * world, int pos_x, int pos_y, int width, int height, bool dynamic){
     //down_left up_left up_right down_right
-    b2Vec2 vertices_tmp[4];
+
+    this->world = world;
+    b2Vec2 *vertices_tmp = new b2Vec2[4];
     for(ObjectVertex &i : vertices){
         if(vertices_tmp[0].x > i.position.x){
             vertices_tmp[0].x = i.position.x;
@@ -25,19 +27,27 @@ void Object::createPhysics(b2World * world){
     int32 count = 4;
     simple_polygon.Set(vertices_tmp, count);
     b2BodyDef bodyDef;
-    bodyDef.type = b2_dynamicBody;
-    //TODO naprawic to ponizej (wybrac odpowiedni punkt)
-    bodyDef.position.Set(vertices_tmp[0].x, vertices_tmp[0].y);
+    if(dynamic)
+        bodyDef.type = b2_dynamicBody;
+    
+    bodyDef.position.Set(pos_x, pos_y);
     bodyDef.userData = this;
     bodyDef.fixedRotation = true;
     this->body = world->CreateBody(&bodyDef);
+
+    b2PolygonShape shape;
+    //shape.m_vertices = vertices_tmp;
+    b2FixtureDef fixture;
+    fixture.shape = &shape;
+    fixture.density=1.0;
+    body -> CreateFixture(&fixture);
 }
 
 Object::Object(const char* mesh_path){
     this->mesh_path = mesh_path;
 }
 
-bool Object::loadObject(b2World * world,const char* mesh_path){
+bool Object::loadMesh(const char* mesh_path){
     if(mesh_path != NULL){
         this->mesh_path = mesh_path;
     }
@@ -47,8 +57,6 @@ bool Object::loadObject(b2World * world,const char* mesh_path){
     if(!ObjectLoader::loadSimpleObject(this->mesh_path.c_str(), vertices, texture)){
         return false;
     }
-
-    createPhysics(world);
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
@@ -81,6 +89,8 @@ bool Object::loadObject(b2World * world,const char* mesh_path){
 
 void Object::draw(GLuint texLocation)
 {
+    //float32 angle = body->GetAngle();
+    //const b2Vec2 &position = body->GetPosition();
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture.id());
     glUniform1i(texLocation, 0);
