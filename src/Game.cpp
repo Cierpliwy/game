@@ -82,6 +82,8 @@ void Game::initialize() {
     // initialize objects below this place
 
     object.loadMesh("../data/cube.obj");
+    // cube that has 1.8 meters height and width
+    object.setPhysics(world,10,20,1.8,1.8);
 }
 
 Game::~Game(){
@@ -93,7 +95,7 @@ void Game::initializeWorldPhysics(){
     if(world != NULL){
         delete world;
     }
-    world = new b2World(b2Vec2(0.0f, 20));
+    world = new b2World(b2Vec2(0.0f, 9.81f));
     world->SetAllowSleeping(true);    
     world->SetContinuousPhysics(true);
     world->SetContactListener(this); 
@@ -172,11 +174,15 @@ void Game::run() {
 
         //Rotate for fun. Look at light! Why is it happening? :D
         m_program.use();
-        angle += delta * 45.0f;
-        MVP = glm::scale(MVP, glm::vec3(0.2f,0.2f,0.2f));
-        MVP = glm::rotate(MVP, angle, glm::vec3(1.0f,1.0f,1.0f));
+        //angle += delta * 45.0f;
+        //MVP = glm::scale(MVP, glm::vec3(0.2f,0.2f,0.2f));
+        //MVP = glm::rotate(MVP, angle, glm::vec3(1.0f,1.0f,1.0f));
         glUniformMatrix4fv(m_MVPLocation, 1, GL_FALSE, value_ptr(MVP));
-        object.draw(m_textureLocation);
+        object.draw(m_textureLocation, MVP, m_MVPLocation);
+
+        MVP = glm::translate(MVP,  glm::vec3(2.0f,0.0f,0.0f));
+        glUniformMatrix4fv(m_MVPLocation, 1, GL_FALSE, value_ptr(MVP));
+        object.draw(m_textureLocation, MVP, m_MVPLocation);
 
 
         SDL_GL_SwapWindow(m_window);
