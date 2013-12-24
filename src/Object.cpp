@@ -1,12 +1,9 @@
 #include "Object.h"
 
-
-//#include "Windows.h"
-//#include "WinBase.h"
-
-
 void Object::setPhysics(b2World * world, float pos_x, float pos_y, float width, float height, bool dynamic){
-    //down_left up_left up_right down_right
+
+    // how many points will be used as body in texture - 4 as square
+    int32 count = 4;
 
     this->world = world;
     glm::vec3 *vertices_tmp = new glm::vec3[4];
@@ -16,6 +13,7 @@ void Object::setPhysics(b2World * world, float pos_x, float pos_y, float width, 
     vertices_tmp[0].y = FLT_MAX;
     vertices_tmp[2].y = FLT_MIN;
 
+    //algorithm that closes object in fixed body (square)
     for(ObjectVertex &i : vertices){
         if(vertices_tmp[0].x > i.position.x){
             vertices_tmp[0].x = i.position.x;
@@ -35,6 +33,12 @@ void Object::setPhysics(b2World * world, float pos_x, float pos_y, float width, 
         }
     }
 
+    b2Vec2 *vertices_to_shape = new b2Vec2[count];
+    for(int i = 0; i<count; ++i){
+        vertices_to_shape[i].x = vertices_tmp[i].x*P2M;
+        vertices_to_shape[i].y = vertices_tmp[i].y*P2M;
+    }
+
     if(width){
         scaler.x = (width*M2P)/(vertices_tmp[2].x - vertices_tmp[0].x);
     }
@@ -43,47 +47,27 @@ void Object::setPhysics(b2World * world, float pos_x, float pos_y, float width, 
     }
     scaler.z = scaler.y;
 
-    
-    //OutputDebugString("\nChujjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj\n");
-    //OutputDebugString(std::to_string(width*M2P).c_str());
-    ///OutputDebugString("\n");
-    //OutputDebugString(std::to_string(scaler.y).c_str());
 
-
-    b2Vec2 vertices_to_shape[4];
-    vertices_to_shape[0].x = vertices_tmp[0].x*P2M;
-    vertices_to_shape[0].y = vertices_tmp[0].y*P2M;
-    vertices_to_shape[1].x = vertices_tmp[1].x*P2M;
-    vertices_to_shape[1].y = vertices_tmp[1].y*P2M;
-    vertices_to_shape[2].x = vertices_tmp[2].x*P2M;
-    vertices_to_shape[2].y = vertices_tmp[2].y*P2M;
-    vertices_to_shape[3].x = vertices_tmp[3].x*P2M;
-    vertices_to_shape[3].y = vertices_tmp[3].y*P2M;
-
-    //create cube that will lock figure inside
+    //create shape that will lock figure inside
     b2PolygonShape simple_polygon;
-    int32 count = 4;
-
-    //vertices_to_shape must be CCW (counter clock direction)!!!
-    //simple_polygon.SetAsArray(vertices_to_shape, count);
-    //simple_polygon.
-    //simple_polygon.Set(vertices_to_shape, count);
 
     b2BodyDef bodyDef;
     if(dynamic)
         bodyDef.type = b2_dynamicBody;
-
-    bodyDef.position.Set(pos_x, pos_y);
+    bodyDef.position.Set(pos_x, -pos_y);
     bodyDef.userData = this;
     bodyDef.fixedRotation = true;
     this->body = world->CreateBody(&bodyDef);
 
     b2PolygonShape shape;
-    //shape.m_vertices = vertices_tmp;
+    //vertices_to_shape must be CCW (counter clock direction)!!!
+    shape.Set(vertices_to_shape,count);
+
     b2FixtureDef fixture;
     fixture.shape = &shape;
     fixture.density=1.0;
-    //body -> CreateFixture(&fixture);
+    fixture.friction = 0.4;
+    this->body -> CreateFixture(&fixture);
 }
 
 Object::Object(const char* mesh_path): scaler(0,0,0){
@@ -132,11 +116,12 @@ bool Object::loadMesh(const char* mesh_path){
     return true;
 }
 
-void Object::draw(GLuint texLocation , glm::mat4 MVP, GLuint MVPLocation)
+void Object::draw(GLuint texLocation , glm::mat4 MVP, GLuint & MVPLocation)
 {
-    //float32 angle = body->GetAngle();
-    //const b2Vec2 &position = body->GetPosition();
+    float32 angle = body->GetAngle();
+    const b2Vec2 &position = body->GetPosition();
 
+    glm::vec3 position_in_pix(position.x*M2P, - position.y*M2P,0.0F);
     //    for(int i = 0; i < vertices.size() ; ++i){
     //      const b2Vec2 & tmp_point = ((b2PolygonShape*)body->GetFixtureList()->GetShape())->GetVertex(i);
     //    vertices[i].position.x = tmp_point.x*P2M;
@@ -145,8 +130,9 @@ void Object::draw(GLuint texLocation , glm::mat4 MVP, GLuint MVPLocation)
 
 
     MVP = glm::scale(MVP, scaler);
-    //MVP = glm::rotate(MVP, angle, glm::vec3(1.0f,1.0f,0.0f));
-    MVP = glm::rotate(MVP, 0.1F, glm::vec3(1.0f,1.0f,0.0f));
+    MVP = glm::rotate(MVP, angle, glm::vec3(0.0f,0.0f,1.0f));
+    MVP = glm::translate(MVP, position_in_pix);
+    
     glUniformMatrix4fv(MVPLocation, 1, GL_FALSE, glm::value_ptr(MVP));
 
     glActiveTexture(GL_TEXTURE0);

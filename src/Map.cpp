@@ -120,6 +120,39 @@ void Map::addFloor(unsigned int x1, int unsigned y1,
     m_vertices.push_back(v1);
 }
 
+#include "Windows.h"
+#include "WinBase.h"
+void Map::setPhysics(b2World * world){
+
+    b2BodyDef myBodyDef;
+    myBodyDef.type = b2_staticBody;
+    myBodyDef.position.Set(0, 0); //middle, bottom
+    body = world->CreateBody(&myBodyDef);
+
+    //b2PolygonShape polygonShape;
+    b2EdgeShape edgeShape;
+    b2FixtureDef myFixtureDef;
+    myFixtureDef.shape = &edgeShape;
+    myFixtureDef.density = 1;
+    
+    for(Line<glm::vec2> line : m_lines){
+        edgeShape.Set(b2Vec2(line.a.x*P2M,-line.a.y*P2M),b2Vec2(line.b.x*P2M,-line.b.y*P2M)); //adding line
+        //OutputDebugString("\nVec2: ");
+        //OutputDebugString(std::to_string(line.a.x*P2M).c_str());
+        //OutputDebugString(" : ");
+        //OutputDebugString(std::to_string(line.a.y*P2M).c_str());
+        //OutputDebugString(" Vec22: ");
+        //OutputDebugString(std::to_string(line.b.x*P2M).c_str());
+        //OutputDebugString(" : ");
+        //OutputDebugString(std::to_string(line.b.y*P2M).c_str());
+        body->CreateFixture(&myFixtureDef); //add a fixture to the body
+    } 
+
+    //floor below map
+    edgeShape.Set(b2Vec2(-200,30),b2Vec2(200,30)); //adding line
+    body->CreateFixture(&myFixtureDef); //add a fixture to the body 
+}
+
 void Map::generate(float width, float depth, float uvFix) 
 {
     // Clear all data excluding bitmaps

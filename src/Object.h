@@ -14,7 +14,7 @@
 #include "Program.h"
 
 //meter to pixels
-#define M2P 0.1
+#define M2P 0.05
 //pixels to meters
 #define P2M 1/M2P
 
@@ -26,7 +26,6 @@ class Object
     GLuint vbo;
     GLuint vao;
     GLuint uvbuffer;
-    glm::vec2 position;
 
     //it helps to scale object to size needed
     glm::vec3 scaler;
@@ -48,10 +47,10 @@ public:
     virtual void setPhysics(b2World * world, float pos_x, float pos_y, float width = 0, float height = 0, bool dynamic = true);
 
     //call draw only adter loadMesh and setPhysics !!!
-    void draw(GLuint texLocation, glm::mat4 MVP, GLuint MVPLocation);
+    void draw(GLuint texLocation, glm::mat4 MVP, GLuint &MVPLocation);
 
-    void setPosition(glm::vec2 &position){this->position = position;}
-    glm::vec2 getPosition(){return position;}
+    //void setPosition(glm::vec2 &position){this->position = position;}
+    //glm::vec2 getPosition(){return position;}
     ~Object(void);
 };
 

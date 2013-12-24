@@ -20,6 +20,9 @@ public:
     // Load map from path
     void load(const char *path);
     
+    //sets physics of map in meters !!!!
+    void setPhysics(b2World * world);
+
     // Generate map of specified size
     void generate(float width, float depth, float uvFix);
 
@@ -107,6 +110,9 @@ private:
     std::vector<Line<glm::vec2> > m_lines;
 
     std::vector<Object> objects;
+
+    //physic body
+    b2Body* body;
 };
 
 #endif //MAP_H
