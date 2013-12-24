@@ -1,4 +1,3 @@
-
 #ifdef WIN32
 #include "Windows.h"
 #include "WinBase.h"
@@ -13,77 +12,76 @@
 #include "Game.h"
 #include "GameException.h"
 
-using namespace std;
 using namespace glm;
 
 void Game::initialize() {
 
+    // Initialize SDL library
     if (SDL_Init(SDL_INIT_VIDEO) < 0) 
         throw GameException(GameException::SDL, "Init");
 
+    // Initialize SDL_image library
     int flags = IMG_Init(IMG_INIT_PNG);
-    if ((flags&IMG_INIT_PNG) != flags) 
+    if ((flags & IMG_INIT_PNG) != flags) 
         throw GameException(GameException::SDL_IMAGE, "Init");
 
+    // Use OpenGL version 3
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 
+    // Enable double buffering and set depth accuracy to 24 bits
+    // for depth buffer.
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
+    // Create SDL window
     m_window = SDL_CreateWindow("Gra", SDL_WINDOWPOS_CENTERED, 
-        SDL_WINDOWPOS_CENTERED, 1200, 675, 
-        SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+        SDL_WINDOWPOS_CENTERED, 1600, 900, 
+        SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN);
     if (!m_window) 
         throw GameException(GameException::SDL, "Window");
 
+    // Create OpenGL context for window.
     m_context = SDL_GL_CreateContext(m_window);
     if (!m_context) 
         throw GameException(GameException::SDL, "Context");
 
+    // Enable v-sync
     SDL_GL_SetSwapInterval(1);
 
+    // Load OpenGL by getting functions bodies (for Windows)
     glewExperimental = GL_TRUE;
     GLenum err = glewInit();
     if (err != GLEW_OK) 
         throw GameException(GameException::GLEW, "Init", err);
 
+    // Common OpenGL settings
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     glFrontFace(GL_CW);
 
-    m_vertex.load("../data/vertex.glsl");
-    m_vertex.compile();
-    m_fragment.load("../data/fragment.glsl");
-    m_fragment.compile();
-    m_program.create();
-    m_program.setFragmentShader(m_fragment);
-    m_program.setVertexShader(m_vertex);
-    m_program.link();
-
-    m_simpleVertex.load("../data/simpleVertex.glsl");
-    m_simpleVertex.compile();
-    m_simpleFragment.load("../data/simpleFragment.glsl");
-    m_simpleFragment.compile();
-    m_simpleProgram.create();
-    m_simpleProgram.setFragmentShader(m_simpleFragment);
-    m_simpleProgram.setVertexShader(m_simpleVertex);
-    m_simpleProgram.link();
-
-    m_MVPLocation = m_program.getUniformLocation("MVP");
-    m_lightLocation = m_program.getUniformLocation("light");
-    m_lightSizeLocation = m_program.getUniformLocation("lightSize");
-    m_textureLocation = m_program.getUniformLocation("texSampler");
-
-    m_map.load("../data/fire/map");
+    // Load fire map by default
+    m_map.init();
+    m_map.load("../data/maps/fire/map");
     m_map.generate(7.0f, -1.0f, 2.0f);
 
     initializeWorldPhysics();
     // initialize objects below this place
 
-    object.loadMesh("../data/cube.obj");
+    // Object shader
+    objVertex.load("../data/objVertex.glsl");
+    objVertex.compile();
+    objFragment.load("../data/objFragment.glsl");
+    objFragment.compile();
+    objProgram.create();
+    objProgram.setFragmentShader(objFragment);
+    objProgram.setVertexShader(objVertex);
+    objProgram.link();
+
     // cube that has 1.8 meters height and width
+    object.loadMesh("../data/cube.obj");
     object.setPhysics(world,10,20,1.8,1.8);
+    object.setProgram(objProgram);
 }
 
 Game::~Game(){
@@ -110,15 +108,29 @@ void Game::cleanup() {
 }
 
 void Game::run() {
-    Uint64 time = SDL_GetPerformanceCounter();
+    // Ticks used for high accuracy clock
+    Uint64 ticks = SDL_GetPerformanceCounter();
+    // Time from the beginning of a program in seconds
+    float time = 0;
+    Uint64 timeStart = ticks;
+    // Last frame time in seconds
     float delta = 0;
-    vec2 pos(0.0f, 0.0f);
+    // Player position
+    vec2 pos(3.5f, 2.0f);
+
+    //tmp
+    float offset = time;
 
     while (!m_exit) {
-        delta = static_cast<float>(SDL_GetPerformanceCounter() - time) /
-            SDL_GetPerformanceFrequency();
-        time = SDL_GetPerformanceCounter();
 
+        // Update time data
+        delta = static_cast<float>(SDL_GetPerformanceCounter() - ticks) /
+            SDL_GetPerformanceFrequency();
+        ticks = SDL_GetPerformanceCounter();
+        time = static_cast<float>(SDL_GetPerformanceCounter() - timeStart) /
+            SDL_GetPerformanceFrequency();
+
+        // Handle input events
         SDL_Event e;
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) 
@@ -130,63 +142,59 @@ void Game::run() {
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_g)
                 m_mapTarget ^= Map::GRID;
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_c) {
-                m_map.load("../data/cold/map");
+                m_map.load("../data/maps/cold/map");
                 m_map.generate(7.0f, -1.0f, 2.0f);
+		offset = time;
             }
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_f) {
-                m_map.load("../data/fire/map");
+                m_map.load("../data/maps/fire/map");
                 m_map.generate(7.0f, -1.0f, 2.0f);
+		offset = time;
+            }
+            if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_o) {
+                offset = time;
             }
         }
 
+        // Update position 
         const Uint8 *keymap = SDL_GetKeyboardState(NULL);
         if (keymap[SDL_SCANCODE_RIGHT]) pos.x += delta;
         if (keymap[SDL_SCANCODE_LEFT]) pos.x -= delta;
         if (keymap[SDL_SCANCODE_UP]) pos.y += delta;
         if (keymap[SDL_SCANCODE_DOWN]) pos.y -= delta;
 
+        // Get window ratio
         int w,h;
         SDL_GetWindowSize(m_window, &w, &h);
         float ratio = static_cast<float>(w)/h;
 
+        // Basic matrix settings
         glm::mat4 projection = glm::perspective(45.0f, ratio, 0.1f, 100.0f);
-
         glm::mat4 view = glm::lookAt(vec3(pos, 5.0f), vec3(pos, 0.0f), vec3(0,1,0));
-        glm::mat4 MVP = projection * view;
+        glm::mat4 PV = projection * view;
 
-        static float angle = 45.0f;
+        // Use this matrix for setting model's position in a world
+        glm::mat4 model(1.0f); 
 
-        m_program.use();
-        glUniformMatrix4fv(m_MVPLocation, 1, GL_FALSE, value_ptr(MVP));
-        glUniform2f(m_lightLocation, pos.x, pos.y);
-        glUniform1f(m_lightSizeLocation, sin(angle*0.1f)*0.08f + 1.8f);
-
+        // Clear all used buffers for next frame
         glClearColor(0,0,0,0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        m_map.draw(m_textureLocation, m_mapTarget & (~Map::GRID));
+        // Draw map
+        m_map.setPV(PV);
+        m_map.setLightPos(pos);
+        m_map.setLightSize(sin(time*20)*0.05+2);
+        m_map.setVisibility((time-offset));
+        m_map.draw(m_mapTarget);
 
-        // Draw GRID
-        m_simpleProgram.use();
-        glUniformMatrix4fv(m_MVPLocation, 1, GL_FALSE, value_ptr(MVP));
-        if (m_mapTarget & Map::GRID)
-            m_map.draw(m_textureLocation, Map::GRID);
+        // Draw object
+        object.setPosition(pos);
+        object.setRotation(vec3(pos.y*180, pos.x*-180, 0));
+        object.setPV(PV);
+        object.draw();
 
-        //Rotate for fun. Look at light! Why is it happening? :D
-        m_program.use();
-        //angle += delta * 45.0f;
-        //MVP = glm::scale(MVP, glm::vec3(0.2f,0.2f,0.2f));
-        //MVP = glm::rotate(MVP, angle, glm::vec3(1.0f,1.0f,1.0f));
-        glUniformMatrix4fv(m_MVPLocation, 1, GL_FALSE, value_ptr(MVP));
-        object.draw(m_textureLocation, MVP, m_MVPLocation);
-
-        MVP = glm::translate(MVP,  glm::vec3(2.0f,0.0f,0.0f));
-        glUniformMatrix4fv(m_MVPLocation, 1, GL_FALSE, value_ptr(MVP));
-        object.draw(m_textureLocation, MVP, m_MVPLocation);
-
-
+        // Flip buffers
         SDL_GL_SwapWindow(m_window);
-
         world->Step(delta,4,4);
     }
 }

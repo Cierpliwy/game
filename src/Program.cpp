@@ -62,11 +62,11 @@ void Program::setFragmentShader(const FragmentShader &fragment) {
     glAttachShader(m_id, m_fragment->getID());
 }
 
-void Program::use() {
+void Program::use() const {
     glUseProgram(m_id);
 }
 
-GLuint Program::getUniformLocation(const char *name)
+GLuint Program::getUniformLocation(const char *name) const
 {
     return glGetUniformLocation(m_id, name);
 }

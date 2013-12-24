@@ -13,8 +13,8 @@ class Game : public b2ContactListener
 {
 public:
     Game() : 
-        m_window(NULL), m_context(NULL), world(NULL), m_exit(false),
-        m_mapTarget(Map::MAP | Map::SPRITES | Map::GRID)
+        m_window(NULL), m_context(NULL), m_exit(false), world(NULL), 
+        m_mapTarget(Map::MAP | Map::SPRITES)
     {}
     ~Game();
     void initialize();
@@ -34,23 +34,15 @@ private:
     SDL_GLContext m_context;
     bool m_exit;
 
-    VertexShader m_vertex;
-    FragmentShader m_fragment;
-    Program m_program;
-
-    VertexShader m_simpleVertex;
-    FragmentShader m_simpleFragment;
-    Program m_simpleProgram;
-
     b2World *world;
     Map m_map;
     unsigned int m_mapTarget;
 
+    Program objProgram;
+    VertexShader objVertex;
+    FragmentShader objFragment;
+
     Object object;
-    GLuint m_MVPLocation;
-    GLuint m_lightLocation;
-    GLuint m_lightSizeLocation;
-    GLuint m_textureLocation;
 };
 
 #endif //GAME_H

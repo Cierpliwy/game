@@ -12,9 +12,9 @@ public:
     void create();
     void setVertexShader(const VertexShader& vertex);
     void setFragmentShader(const FragmentShader& vertex);
-    GLuint getUniformLocation(const char *name);
+    GLuint getUniformLocation(const char *name) const;
     void link();
-    void use();
+    void use() const;
 
 private:
     void checkErrors();

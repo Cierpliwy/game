@@ -1,13 +1,12 @@
 #include "Object.h"
 
-
 //#include "Windows.h"
 //#include "WinBase.h"
 
+void Object::setPhysics(b2World * world, float pos_x, float pos_y, float width, 
+                        float height, bool dynamic){
 
-void Object::setPhysics(b2World * world, float pos_x, float pos_y, float width, float height, bool dynamic){
     //down_left up_left up_right down_right
-
     this->world = world;
     glm::vec3 *vertices_tmp = new glm::vec3[4];
 
@@ -36,19 +35,18 @@ void Object::setPhysics(b2World * world, float pos_x, float pos_y, float width, 
     }
 
     if(width){
-        scaler.x = (width*M2P)/(vertices_tmp[2].x - vertices_tmp[0].x);
+        scale.x = (width*M2P)/(vertices_tmp[2].x - vertices_tmp[0].x);
     }
     if(height){
-        scaler.y = (height*M2P)/(vertices_tmp[2].y - vertices_tmp[0].y);
+        scale.y = (height*M2P)/(vertices_tmp[2].y - vertices_tmp[0].y);
     }
-    scaler.z = scaler.y;
+    scale.z = scale.y;
 
     
     //OutputDebugString("\nChujjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj\n");
     //OutputDebugString(std::to_string(width*M2P).c_str());
     ///OutputDebugString("\n");
     //OutputDebugString(std::to_string(scaler.y).c_str());
-
 
     b2Vec2 vertices_to_shape[4];
     vertices_to_shape[0].x = vertices_tmp[0].x*P2M;
@@ -62,7 +60,6 @@ void Object::setPhysics(b2World * world, float pos_x, float pos_y, float width, 
 
     //create cube that will lock figure inside
     b2PolygonShape simple_polygon;
-    int32 count = 4;
 
     //vertices_to_shape must be CCW (counter clock direction)!!!
     //simple_polygon.SetAsArray(vertices_to_shape, count);
@@ -86,10 +83,19 @@ void Object::setPhysics(b2World * world, float pos_x, float pos_y, float width, 
     //body -> CreateFixture(&fixture);
 }
 
-Object::Object(const char* mesh_path): scaler(0,0,0){
+Object::Object(const char* mesh_path)
+    : position(0), rotation(0), scale(0), program(nullptr), PV(nullptr),
+      PVLocation(0), MLocation(0), texLocation(0) {
     if(mesh_path){
         this->mesh_path = mesh_path;
     }
+}
+
+void Object::setProgram(const Program &program) {
+    this->program = &program;
+    PVLocation = this->program->getUniformLocation("PV");
+    MLocation = this->program->getUniformLocation("M");
+    texLocation = this->program->getUniformLocation("tex");
 }
 
 bool Object::loadMesh(const char* mesh_path){
@@ -132,7 +138,7 @@ bool Object::loadMesh(const char* mesh_path){
     return true;
 }
 
-void Object::draw(GLuint texLocation , glm::mat4 MVP, GLuint MVPLocation)
+void Object::draw()
 {
     //float32 angle = body->GetAngle();
     //const b2Vec2 &position = body->GetPosition();
@@ -142,12 +148,20 @@ void Object::draw(GLuint texLocation , glm::mat4 MVP, GLuint MVPLocation)
     //    vertices[i].position.x = tmp_point.x*P2M;
     //  vertices[i].position.y = tmp_point.y*P2M;
     //}
+    if (!program || !PV) return;
 
+    // Calculate model matrix
+    glm::mat4 model(1.0f);
+    model = glm::translate(model, glm::vec3(position,0));
+    model = glm::scale(model, scale);
+    model = glm::rotate(model, rotation.x, glm::vec3(1.0f,0.0f,0.0f));
+    model = glm::rotate(model, rotation.y, glm::vec3(0.0f,1.0f,0.0f));
+    model = glm::rotate(model, rotation.z, glm::vec3(0.0f,0.0f,1.0f));
 
-    MVP = glm::scale(MVP, scaler);
-    //MVP = glm::rotate(MVP, angle, glm::vec3(1.0f,1.0f,0.0f));
-    MVP = glm::rotate(MVP, 0.1F, glm::vec3(1.0f,1.0f,0.0f));
-    glUniformMatrix4fv(MVPLocation, 1, GL_FALSE, glm::value_ptr(MVP));
+    program->use();
+
+    glUniformMatrix4fv(PVLocation, 1, GL_FALSE, glm::value_ptr(*PV));
+    glUniformMatrix4fv(MLocation, 1, GL_FALSE, glm::value_ptr(model));
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture.id());

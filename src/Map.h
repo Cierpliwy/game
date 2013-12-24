@@ -7,6 +7,7 @@
 #include "Texture.h"
 #include "Utils.h"
 #include "Sprite.h"
+#include "Program.h"
 struct SDL_Surface;
 
 // Class designed for generating and displaying map from
@@ -17,6 +18,9 @@ public:
     Map();
     ~Map();
 
+    // Initialize
+    void init();
+
     // Load map from path
     void load(const char *path);
     
@@ -24,7 +28,7 @@ public:
     void generate(float width, float depth, float uvFix);
 
     // Draw map
-	void draw(GLuint texLocation, unsigned int target);
+    void draw(unsigned int target);
 
     // Free all map resources
     void free(bool freeSurface);
@@ -35,6 +39,18 @@ public:
         SPRITES = 2,
         GRID = 4
     };
+
+    // Set view perspective matrix
+    void setPV(const glm::mat4 &PV) {m_PV = &PV;}
+
+    // Set light position
+    void setLightPos(const glm::vec2 &pos) {m_lightPos = &pos;}
+
+    // Set light size
+    void setLightSize(float size) {m_lightSize = size;}
+
+    // Set visibility
+    void setVisibility(float visibility) {m_visibility = visibility;}
 
 private:
 
@@ -98,9 +114,30 @@ private:
     std::vector<MapVertex> m_vertices;
     std::vector<glm::vec3> m_gridVertices;
 
+    // Programs
+    Program m_program;
+    VertexShader m_vertexShader;
+    FragmentShader m_fragmentShader;
+
+    // Draw variables
+    const glm::mat4 *m_PV;
+    const glm::vec2 *m_lightPos;
+    float m_lightSize;
+    float m_visibility;
+
+    // Uniform locations
+    GLuint m_PVLocation;
+    GLuint m_lightPosLocation;
+    GLuint m_lightSizeLocation;
+    GLuint m_texture0Location;
+    GLuint m_texture1Location;
+    GLuint m_visibilityLocation;
+    GLuint m_enableGridLocation;
+
     // Textures
     SDL_Surface *m_surface;
     Texture m_texture;
+    Texture m_gfx;
     Sprite m_sprites[3];
     
     // Collision data

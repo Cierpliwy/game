@@ -26,6 +26,27 @@ void Map::free(bool freeSurface){
     m_lines.clear();
 }
 
+void Map::init() {
+    // Prepare shaders
+    m_vertexShader.load("../data/maps/mapVertex.glsl");
+    m_vertexShader.compile();
+    m_fragmentShader.load("../data/maps/mapFragment.glsl");
+    m_fragmentShader.compile();
+    m_program.create();
+    m_program.setFragmentShader(m_fragmentShader);
+    m_program.setVertexShader(m_vertexShader);
+    m_program.link();
+     
+    // Get uniform locations
+    m_PVLocation = m_program.getUniformLocation("PV");
+    m_lightPosLocation = m_program.getUniformLocation("light");
+    m_lightSizeLocation = m_program.getUniformLocation("lightSize");
+    m_texture0Location = m_program.getUniformLocation("tex0");
+    m_texture1Location = m_program.getUniformLocation("tex1");
+    m_visibilityLocation = m_program.getUniformLocation("vis");
+    m_enableGridLocation = m_program.getUniformLocation("grid");
+}
+
 void Map::load(const char *path){
 
     // Load collision map
@@ -49,6 +70,11 @@ void Map::load(const char *path){
     string texPath = path;
     texPath += "_tex.png";
     m_texture.load(texPath.c_str());
+
+    // Load gfx texture
+    texPath = path;
+    texPath += "_gfx.png";
+    m_gfx.load(texPath.c_str());
 }
 
 unsigned char Map::getPixel(unsigned int x, unsigned int y){
@@ -265,12 +291,25 @@ void Map::generate(float width, float depth, float uvFix)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void Map::draw(GLuint texLocation, unsigned int target)
+void Map::draw(unsigned int target)
 {
+    m_program.use();
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, m_gfx.id());
+    glUniform1i(m_texture1Location, 1);
+
+    glUniformMatrix4fv(m_PVLocation, 1, GL_FALSE, value_ptr(*m_PV));
+    glUniform2f(m_lightPosLocation, m_lightPos->x, m_lightPos->y); 
+    glUniform1f(m_lightSizeLocation, m_lightSize);
+    glUniform1f(m_visibilityLocation, m_visibility);
+    glUniform1ui(m_enableGridLocation, 0);
+
     if (target & MAP) {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_texture.id());
-        glUniform1i(texLocation, 0);
+        glUniform1i(m_texture0Location, 0);
+
 
         glBindVertexArray(m_vao);
         glDrawArrays(GL_TRIANGLES, 0, m_vertices.size());
@@ -281,13 +320,18 @@ void Map::draw(GLuint texLocation, unsigned int target)
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        for(unsigned int i = 0; i < 3; ++i)
-            m_sprites[i].draw(texLocation);
+        for(unsigned int i = 0; i < 3; ++i) {
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, m_sprites[i].getTextureID());
+            glUniform1i(m_texture0Location, 0);
+            m_sprites[i].draw();
+        }
 
         glDisable(GL_BLEND);
     }
 
     if (target & GRID) {
+        glUniform1ui(m_enableGridLocation, 1);
         glDisable(GL_DEPTH_TEST);
         glBindVertexArray(m_gridVao);
         glDrawArrays(GL_LINES, 0, m_gridVertices.size()); 

@@ -12,7 +12,8 @@ public:
 
     void load(const char *texFilePath);
     void generate(Rect<glm::vec3> rect);
-    void draw(GLuint texLocation);
+    GLuint getTextureID() {return texture.id();}
+    void draw();
 
 private:
 

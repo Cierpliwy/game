@@ -56,12 +56,8 @@ void Sprite::generate(Rect<glm::vec3> rect)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void Sprite::draw(GLuint texLocation)
+void Sprite::draw()
 {
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture.id());
-    glUniform1i(texLocation, 0);
-
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
