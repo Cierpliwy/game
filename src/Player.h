@@ -27,8 +27,9 @@ public:
     Player(){jump_moves = 0;}
     Player(char * mesh_path);
     void setPhysics(b2World * world, float pos_x, float pos_y, float width, float height, bool dynamic = true);
-    void moveRight(float time);
-    void moveLeft(float time);
+    void touched();
+    void moveRight();
+    void moveLeft();
     void jump();
     void loadCharacterFromObj(const char* filename);
     ~Player(void);
