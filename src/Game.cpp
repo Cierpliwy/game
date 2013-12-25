@@ -65,7 +65,7 @@ void Game::initialize() {
     // Load fire map by default
     m_map.init();
     m_map.load("../data/maps/fire/map");
-    m_map.generate(200.0f, -50.0f, 100.0f); //setPhysics after this !!!!
+    m_map.generate(200.0f, -40.0f, 0.1f); //setPhysics after this !!!!
     m_map.setPhysics(world);
 
     // Object shader
@@ -147,7 +147,8 @@ void Game::run() {
                 m_mapTarget ^= Map::GRID;
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_c) {
                 m_map.load("../data/maps/cold/map");
-                m_map.generate(7.0f, -1.0f, 2.0f);
+                m_map.generate(200.0f, -40.0f, 0.1f); //setPhysics after this !!!!
+                m_map.setPhysics(world);
                 offset = time;
             }
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_w)
@@ -158,7 +159,8 @@ void Game::run() {
                 player->moveRight();
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_f) {
                 m_map.load("../data/maps/fire/map");
-                m_map.generate(7.0f, -1.0f, 2.0f);
+                m_map.generate(200.0f, -40.0f, 0.1f); //setPhysics after this !!!!
+                m_map.setPhysics(world);
                 offset = time;
             }
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_o) {
@@ -168,10 +170,11 @@ void Game::run() {
 
         // Update position 
         const Uint8 *keymap = SDL_GetKeyboardState(NULL);
-        if (keymap[SDL_SCANCODE_RIGHT]) pos.x += delta*10;
-        if (keymap[SDL_SCANCODE_LEFT]) pos.x -= delta*10;
-        if (keymap[SDL_SCANCODE_UP]) pos.y += delta*10;
-        if (keymap[SDL_SCANCODE_DOWN]) pos.y -= delta*10;
+        float speed = 30;
+        if (keymap[SDL_SCANCODE_RIGHT]) pos.x += delta*speed;
+        if (keymap[SDL_SCANCODE_LEFT]) pos.x -= delta*speed;
+        if (keymap[SDL_SCANCODE_UP]) pos.y += delta*speed;
+        if (keymap[SDL_SCANCODE_DOWN]) pos.y -= delta*speed;
 
         // Get window ratio
         int w,h;
