@@ -14,7 +14,7 @@
 #include "Program.h"
 
 //meter to pixels
-#define M2P 0.1
+#define M2P 0.05
 //pixels to meters
 #define P2M 1/M2P
 

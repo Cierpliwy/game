@@ -6,6 +6,7 @@
 #include "Program.h"
 #include "Map.h"
 #include "Object.h"
+#include "Player.h"
 #include <Box2D/Box2D.h>
 
 
@@ -35,6 +36,7 @@ private:
     bool m_exit;
 
     b2World *world;
+    Player *player;
     Map m_map;
     unsigned int m_mapTarget;
 

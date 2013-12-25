@@ -63,10 +63,12 @@ void Game::initialize() {
     // Load fire map by default
     m_map.init();
     m_map.load("../data/maps/fire/map");
-    m_map.generate(7.0f, -1.0f, 2.0f);
 
     initializeWorldPhysics();
     // initialize objects below this place
+    m_map.load("../data/fire/map");
+    m_map.generate(7.0f, -1.0f, 2.0f); //setPhysics after this !!!!
+    m_map.setPhysics(world);
 
     // Object shader
     objVertex.load("../data/objVertex.glsl");
@@ -80,8 +82,12 @@ void Game::initialize() {
 
     // cube that has 1.8 meters height and width
     object.loadMesh("../data/cube.obj");
-    object.setPhysics(world,10,20,1.8,1.8);
+    object.setPhysics(world, 400, 200, 1.8, 1.8);
     object.setProgram(objProgram);
+    
+    player = new Player();
+    player->loadMesh("../data/cube.obj");
+    player->setPhysics(world,100,200,2,2);
 }
 
 Game::~Game(){
@@ -93,7 +99,7 @@ void Game::initializeWorldPhysics(){
     if(world != NULL){
         delete world;
     }
-    world = new b2World(b2Vec2(0.0f, 9.81f));
+    world = new b2World(b2Vec2(0.0f, 10*9.81f));
     world->SetAllowSleeping(true);    
     world->SetContinuousPhysics(true);
     world->SetContactListener(this); 
@@ -146,6 +152,8 @@ void Game::run() {
                 m_map.generate(7.0f, -1.0f, 2.0f);
 		offset = time;
             }
+            if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_SPACE)
+                player->jump();
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_f) {
                 m_map.load("../data/maps/fire/map");
                 m_map.generate(7.0f, -1.0f, 2.0f);
@@ -188,8 +196,6 @@ void Game::run() {
         m_map.draw(m_mapTarget);
 
         // Draw object
-        object.setPosition(pos);
-        object.setRotation(vec3(pos.y*180, pos.x*-180, 0));
         object.setPV(PV);
         object.draw();
 
