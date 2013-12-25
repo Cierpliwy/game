@@ -75,6 +75,11 @@ void Map::load(const char *path){
     texPath = path;
     texPath += "_gfx.png";
     m_gfx.load(texPath.c_str());
+
+    // Load back texture
+    texPath = path;
+    texPath += "_back.png";
+    m_back.load(texPath.c_str());
 }
 
 unsigned char Map::getPixel(unsigned int x, unsigned int y){
@@ -200,6 +205,12 @@ void Map::generate(float width, float depth, float uvFix)
             vec3(0.0f, m_height, sprDepth*depth)));
         sprDepth -= 0.4f;
     }
+    float backgroundScale = 1.5f;
+    m_back.generate(Rect<vec3>(
+                    vec3(-1.0f*backgroundScale*m_width, -1.0f*backgroundScale*m_height, -100.0f),
+                    vec3(1.0f*backgroundScale*m_width, -1.0f*backgroundScale*m_height, -100.0f),
+                    vec3(1.0f*backgroundScale*m_width, 1.0f*backgroundScale*m_height, -100.0f),
+                    vec3(-1.0f*backgroundScale*m_width, 1.0f*backgroundScale*m_height, -100.0f)));
 
     // Process pixels
     for(int i = 0; i < m_surface->w; ++i) {
@@ -328,15 +339,25 @@ void Map::draw(unsigned int target)
 {
     m_program.use();
 
+    glUniform2f(m_lightPosLocation, m_lightPos->x, m_lightPos->y); 
+    glUniform1f(m_visibilityLocation, m_visibility);
+    glUniform1ui(m_enableGridLocation, 0);
+    glUniformMatrix4fv(m_PVLocation, 1, GL_FALSE, value_ptr(*m_PV));
+
+    glDisable(GL_DEPTH_TEST);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_back.getTextureID());
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, 0); 
+    glUniform1i(m_texture0Location, 0);
+    glUniform1f(m_lightSizeLocation, 2*m_lightSize);
+    m_back.draw();
+    glUniform1f(m_lightSizeLocation, m_lightSize);
+    glEnable(GL_DEPTH_TEST);
+
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, m_gfx.id());
     glUniform1i(m_texture1Location, 1);
-
-    glUniformMatrix4fv(m_PVLocation, 1, GL_FALSE, value_ptr(*m_PV));
-    glUniform2f(m_lightPosLocation, m_lightPos->x, m_lightPos->y); 
-    glUniform1f(m_lightSizeLocation, m_lightSize);
-    glUniform1f(m_visibilityLocation, m_visibility);
-    glUniform1ui(m_enableGridLocation, 0);
 
     if (target & MAP) {
         glActiveTexture(GL_TEXTURE0);

@@ -40,7 +40,8 @@ public:
     enum DrawTarget {
         MAP = 1,
         SPRITES = 2,
-        GRID = 4
+        GRID = 4,
+        BACKGROUND = 8
     };
 
     // Set view perspective matrix
@@ -54,6 +55,12 @@ public:
 
     // Set visibility
     void setVisibility(float visibility) {m_visibility = visibility;}
+
+    // Set background x coordinate movement
+    void setBackgroundX(float x) {m_backX = x;}
+
+    // Set background x coordinate movement
+    void setBackgroundY(float y) {m_backY = y;}
 
 private:
 
@@ -127,6 +134,8 @@ private:
     const glm::vec2 *m_lightPos;
     float m_lightSize;
     float m_visibility;
+    float m_backX;
+    float m_backY;
 
     // Uniform locations
     GLuint m_PVLocation;
@@ -141,6 +150,7 @@ private:
     SDL_Surface *m_surface;
     Texture m_texture;
     Texture m_gfx;
+    Sprite m_back;
     Sprite m_sprites[3];
     
     // Collision data
