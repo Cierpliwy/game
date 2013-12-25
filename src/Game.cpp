@@ -80,12 +80,12 @@ void Game::initialize() {
 
     // cube that has 1.8 meters height and width
     object.loadMesh("../data/cube.obj");
-    object.setPhysics(world, 400, 200, 1.8, 1.8);
+    object.setPhysics(world, 10, 10, 1.8, 1.8);
     object.setProgram(objProgram);
-    
+
     player = new Player();
     player->loadMesh("../data/cube.obj");
-    player->setPhysics(world,100,200,2,2);
+    player->setPhysics(world,5,10,2.5,2.5);
 }
 
 Game::~Game(){
@@ -97,7 +97,7 @@ void Game::initializeWorldPhysics(){
     if(world != NULL){
         delete world;
     }
-    world = new b2World(b2Vec2(0.0f, 10*9.81f));
+    world = new b2World(b2Vec2(0.0f, -9.81f));
     world->SetAllowSleeping(true);    
     world->SetContinuousPhysics(true);
     world->SetContactListener(this); 
@@ -148,14 +148,18 @@ void Game::run() {
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_c) {
                 m_map.load("../data/maps/cold/map");
                 m_map.generate(7.0f, -1.0f, 2.0f);
-		offset = time;
+                offset = time;
             }
-            if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_SPACE)
+            if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_w)
                 player->jump();
+            if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_a)
+                player->moveLeft();
+            if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_d)
+                player->moveRight();
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_f) {
                 m_map.load("../data/maps/fire/map");
                 m_map.generate(7.0f, -1.0f, 2.0f);
-		offset = time;
+                offset = time;
             }
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_o) {
                 offset = time;
@@ -192,7 +196,7 @@ void Game::run() {
         m_map.setLightSize(sin(time*20)*2+50);
         m_map.setVisibility((time-offset));
         m_map.draw(m_mapTarget);
-        
+
         // Draw object
         object.setPV(PV);
         object.setRotation(vec3(time*180));
