@@ -37,11 +37,21 @@ class Object
     GLuint texLocation;
 
 protected:
+    enum ObjectType{
+        ENEMY,
+        TERRAIN
+    };
+
+    ObjectType objectType;
     b2Body* body;
     const b2World * world;
 
 public:
     Object(const char* mesh_path = NULL);
+
+    ObjectType getObjectType(){return objectType;}
+
+    void setObjectType(ObjectType type){objectType = type;}
 
     //always load mesh before setting physics !!!
     virtual bool loadMesh(const char* mesh_path = NULL);
@@ -49,21 +59,21 @@ public:
     //sets physics of the body - position, width, height (if set to 0 it will 
     // take measures from mesh, and if it is dynamic, or static) - in meters!
     virtual void setPhysics(b2World * world, float pos_x, float pos_y, 
-                            float width = 0, float height = 0, 
-                            bool dynamic = true);
+        float width = 0, float height = 0, 
+        bool dynamic = true);
 
     //call draw only after loadMesh and setPhysics !!!
     void draw();
 
+    virtual void touched();
     void setProgram(const Program &program);
     const Program& getProgram() const { return *program;}
 
     void setPV(const glm::mat4 &PV) {this->PV = &PV;}
     const glm::mat4& getPV() const {return *PV;}
 
-    void setPosition(const glm::vec2 &position){this->position = position;}
-    glm::vec2 getPosition() const {return position;}
-    
+    const b2Vec2 getPosition() const {return body->GetPosition();}
+
     void setRotation(const glm::vec3 &rotation){this->rotation = rotation;}
     glm::vec3 getRotation() const {return rotation;}
 

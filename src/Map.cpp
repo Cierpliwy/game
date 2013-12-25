@@ -9,6 +9,7 @@ using namespace glm;
 Map::Map() : m_width(0), m_height(0), m_vao(0), m_vbo(0),
     m_gridVao(0), m_gridVbo(0), m_surface(NULL)
 {
+    setObjectType(ObjectType::TERRAIN);
 }
 
 Map::~Map(){
@@ -160,9 +161,10 @@ void Map::setPhysics(b2World * world){
     b2FixtureDef myFixtureDef;
     myFixtureDef.shape = &edgeShape;
     myFixtureDef.density = 1;
-    
+    myFixtureDef.userData = this;
+
     for(Line<glm::vec2> line : m_lines){
-        edgeShape.Set(b2Vec2(line.a.x,-line.a.y),b2Vec2(line.b.x,-line.b.y)); //adding line
+        edgeShape.Set(b2Vec2(line.a.x,line.a.y),b2Vec2(line.b.x,line.b.y)); //adding line
         //OutputDebugString("\nVec2: ");
         //OutputDebugString(std::to_string(line.a.x*P2M).c_str());
         //OutputDebugString(" : ");
@@ -175,7 +177,7 @@ void Map::setPhysics(b2World * world){
     } 
 
     //floor below map
-    edgeShape.Set(b2Vec2(-200,30),b2Vec2(200,30)); //adding line
+    edgeShape.Set(b2Vec2(-200,-30),b2Vec2(200,-30)); //adding line
     body->CreateFixture(&myFixtureDef); //add a fixture to the body 
 }
 

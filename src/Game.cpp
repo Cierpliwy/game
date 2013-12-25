@@ -80,12 +80,13 @@ void Game::initialize() {
 
     // cube that has 1.8 meters height and width
     object.loadMesh("../data/cube.obj");
-    object.setPhysics(world, 10, 10, 1.8, 1.8);
+    object.setPhysics(world, 15, 40, 1.8, 1.8);
     object.setProgram(objProgram);
 
     player = new Player();
+    player->setProgram(objProgram);
     player->loadMesh("../data/cube.obj");
-    player->setPhysics(world,5,10,2.5,2.5);
+    player->setPhysics(world,20,40,2.5,2.5);
 }
 
 Game::~Game(){
@@ -97,7 +98,7 @@ void Game::initializeWorldPhysics(){
     if(world != NULL){
         delete world;
     }
-    world = new b2World(b2Vec2(0.0f, -9.81f));
+    world = new b2World(b2Vec2(0.0f, 10*-9.81f));
     world->SetAllowSleeping(true);    
     world->SetContinuousPhysics(true);
     world->SetContactListener(this); 
@@ -151,12 +152,6 @@ void Game::run() {
                 m_map.setPhysics(world);
                 offset = time;
             }
-            if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_w)
-                player->jump();
-            if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_a)
-                player->moveLeft();
-            if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_d)
-                player->moveRight();
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_f) {
                 m_map.load("../data/maps/fire/map");
                 m_map.generate(200.0f, -40.0f, 0.1f); //setPhysics after this !!!!
@@ -171,17 +166,21 @@ void Game::run() {
         // Update position 
         const Uint8 *keymap = SDL_GetKeyboardState(NULL);
         float speed = 30;
-        if (keymap[SDL_SCANCODE_RIGHT]) pos.x += delta*speed;
-        if (keymap[SDL_SCANCODE_LEFT]) pos.x -= delta*speed;
-        if (keymap[SDL_SCANCODE_UP]) pos.y += delta*speed;
-        if (keymap[SDL_SCANCODE_DOWN]) pos.y -= delta*speed;
-
+        //if (keymap[SDL_SCANCODE_RIGHT]) pos.x += delta*speed;
+        //if (keymap[SDL_SCANCODE_LEFT]) pos.x -= delta*speed;
+        //if (keymap[SDL_SCANCODE_UP]) pos.y += delta*speed;
+        //if (keymap[SDL_SCANCODE_DOWN]) pos.y -= delta*speed;
+        if (keymap[SDL_SCANCODE_W]) player->jump();
+        if (keymap[SDL_SCANCODE_A]) player->moveLeft();
+        if (keymap[SDL_SCANCODE_D]) player->moveRight();
         // Get window ratio
         int w,h;
         SDL_GetWindowSize(m_window, &w, &h);
         float ratio = static_cast<float>(w)/h;
 
         // Basic matrix settings
+        pos.x = player->getPosition().x;
+        pos.y = player->getPosition().y; 
         glm::mat4 projection = glm::perspective(45.0f, ratio, 0.1f,1000.0f);
         glm::mat4 view = glm::lookAt(vec3(pos, 125.0f), vec3(pos, 0.0f), vec3(0,1,0));
         glm::mat4 PV = projection * view;
@@ -205,6 +204,8 @@ void Game::run() {
         object.setRotation(vec3(time*180));
         object.draw();
 
+        player->setPV(PV);
+        player->draw();
         // Flip buffers
         SDL_GL_SwapWindow(m_window);
         world->Step(delta,4,4);
@@ -213,6 +214,8 @@ void Game::run() {
 
 
 void Game::BeginContact(b2Contact * contact){
+    ((Object*)contact->GetFixtureA()->GetUserData())->touched();
+    ((Object*)contact->GetFixtureB()->GetUserData())->touched();
 }
 
 void Game::EndContact(b2Contact * contact){

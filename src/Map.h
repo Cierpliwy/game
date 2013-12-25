@@ -12,7 +12,7 @@ struct SDL_Surface;
 
 // Class designed for generating and displaying map from
 // bitmaps.
-class Map {
+class Map : public Object {
 public:
 
     Map();

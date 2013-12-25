@@ -1,5 +1,8 @@
 #include "Object.h"
 
+void Object::touched(){
+
+}
 void Object::setPhysics(b2World * world, float pos_x, float pos_y, float width, 
                         float height, bool dynamic){
 
@@ -54,7 +57,7 @@ void Object::setPhysics(b2World * world, float pos_x, float pos_y, float width,
     b2BodyDef bodyDef;
     if(dynamic)
         bodyDef.type = b2_dynamicBody;
-    bodyDef.position.Set(pos_x, -pos_y);
+    bodyDef.position.Set(pos_x, pos_y);
     bodyDef.userData = this;
     bodyDef.fixedRotation = true;
     this->body = world->CreateBody(&bodyDef);
@@ -67,6 +70,7 @@ void Object::setPhysics(b2World * world, float pos_x, float pos_y, float width,
     fixture.shape = &shape;
     fixture.density=1.0;
     fixture.friction = 0.4;
+    fixture.userData = this;
     this->body -> CreateFixture(&fixture);
 }
 
@@ -139,10 +143,10 @@ void Object::draw()
     glm::mat4 model(1.0f);
     
     model = glm::translate(model, glm::vec3(position.x, position.y,0));
-    //model = glm::scale(model, scale);
-    model = glm::rotate(model, rotation.x, glm::vec3(1.0f,0.0f,0.0f));
-    model = glm::rotate(model, rotation.y, glm::vec3(0.0f,1.0f,0.0f));
-    model = glm::rotate(model, rotation.z, glm::vec3(0.0f,0.0f,1.0f));
+    model = glm::scale(model, scale);
+    //model = glm::rotate(model, rotation.x, glm::vec3(1.0f,0.0f,0.0f));
+    //model = glm::rotate(model, rotation.y, glm::vec3(0.0f,1.0f,0.0f));
+    model = glm::rotate(model, angle, glm::vec3(0.0f,0.0f,1.0f));
 
     program->use();
     glUniformMatrix4fv(PVLocation, 1, GL_FALSE, glm::value_ptr(*PV));
