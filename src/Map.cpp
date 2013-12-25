@@ -162,7 +162,7 @@ void Map::setPhysics(b2World * world){
     myFixtureDef.density = 1;
     
     for(Line<glm::vec2> line : m_lines){
-        edgeShape.Set(b2Vec2(line.a.x*P2M,-line.a.y*P2M),b2Vec2(line.b.x*P2M,-line.b.y*P2M)); //adding line
+        edgeShape.Set(b2Vec2(line.a.x,-line.a.y),b2Vec2(line.b.x,-line.b.y)); //adding line
         //OutputDebugString("\nVec2: ");
         //OutputDebugString(std::to_string(line.a.x*P2M).c_str());
         //OutputDebugString(" : ");

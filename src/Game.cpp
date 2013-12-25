@@ -65,7 +65,7 @@ void Game::initialize() {
     // Load fire map by default
     m_map.init();
     m_map.load("../data/maps/fire/map");
-    m_map.generate(7.0f, -1.0f, 2.0f); //setPhysics after this !!!!
+    m_map.generate(200.0f, -50.0f, 100.0f); //setPhysics after this !!!!
     m_map.setPhysics(world);
 
     // Object shader
@@ -164,10 +164,10 @@ void Game::run() {
 
         // Update position 
         const Uint8 *keymap = SDL_GetKeyboardState(NULL);
-        if (keymap[SDL_SCANCODE_RIGHT]) pos.x += delta;
-        if (keymap[SDL_SCANCODE_LEFT]) pos.x -= delta;
-        if (keymap[SDL_SCANCODE_UP]) pos.y += delta;
-        if (keymap[SDL_SCANCODE_DOWN]) pos.y -= delta;
+        if (keymap[SDL_SCANCODE_RIGHT]) pos.x += delta*10;
+        if (keymap[SDL_SCANCODE_LEFT]) pos.x -= delta*10;
+        if (keymap[SDL_SCANCODE_UP]) pos.y += delta*10;
+        if (keymap[SDL_SCANCODE_DOWN]) pos.y -= delta*10;
 
         // Get window ratio
         int w,h;
@@ -175,8 +175,8 @@ void Game::run() {
         float ratio = static_cast<float>(w)/h;
 
         // Basic matrix settings
-        glm::mat4 projection = glm::perspective(45.0f, ratio, 0.1f, 100.0f);
-        glm::mat4 view = glm::lookAt(vec3(pos, 5.0f), vec3(pos, 0.0f), vec3(0,1,0));
+        glm::mat4 projection = glm::perspective(45.0f, ratio, 0.1f,1000.0f);
+        glm::mat4 view = glm::lookAt(vec3(pos, 125.0f), vec3(pos, 0.0f), vec3(0,1,0));
         glm::mat4 PV = projection * view;
 
         // Use this matrix for setting model's position in a world
@@ -189,12 +189,13 @@ void Game::run() {
         // Draw map
         m_map.setPV(PV);
         m_map.setLightPos(pos);
-        m_map.setLightSize(sin(time*20)*0.05+2);
+        m_map.setLightSize(sin(time*20)*2+50);
         m_map.setVisibility((time-offset));
         m_map.draw(m_mapTarget);
-
+        
         // Draw object
         object.setPV(PV);
+        object.setRotation(vec3(time*180));
         object.draw();
 
         // Flip buffers

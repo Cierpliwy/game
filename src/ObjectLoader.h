@@ -14,9 +14,9 @@ struct ObjectVertex
     glm::vec3 normal;
 
     enum Attribiute {
-        POSITION,
-        UV,
-        NORMAL
+        POSITION = 0,
+        UV = 1,
+        NORMAL = 2
     };
 };
 

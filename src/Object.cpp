@@ -35,15 +35,15 @@ void Object::setPhysics(b2World * world, float pos_x, float pos_y, float width,
 
     b2Vec2 *vertices_to_shape = new b2Vec2[count];
     for(int i = 0; i<count; ++i){
-        vertices_to_shape[i].x = vertices_tmp[i].x*P2M;
-        vertices_to_shape[i].y = vertices_tmp[i].y*P2M;
+        vertices_to_shape[i].x = vertices_tmp[i].x;
+        vertices_to_shape[i].y = vertices_tmp[i].y;
     }
 
     if(width){
-        scale.x = (width*M2P)/(vertices_tmp[2].x - vertices_tmp[0].x);
+        scale.x = (width)/(vertices_tmp[2].x - vertices_tmp[0].x);
     }
     if(height){
-        scale.y = (height*M2P)/(vertices_tmp[2].y - vertices_tmp[0].y);
+        scale.y = (height)/(vertices_tmp[2].y - vertices_tmp[0].y);
     }
     scale.z = scale.y;
 
@@ -72,7 +72,7 @@ void Object::setPhysics(b2World * world, float pos_x, float pos_y, float width,
 
 Object::Object(const char* mesh_path)
     : position(0), rotation(0), scale(1,1,1), program(nullptr), PV(nullptr),
-      PVLocation(0), MLocation(0), texLocation(0) {
+      PVLocation(0), MLocation(0), texLocation(0), vbo(0), vao(0) {
     if(mesh_path){
         this->mesh_path = mesh_path;
     }
@@ -95,6 +95,7 @@ bool Object::loadMesh(const char* mesh_path){
     if(!ObjectLoader::loadSimpleObject(this->mesh_path.c_str(), vertices, texture)){
         return false;
     }
+
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
@@ -130,24 +131,20 @@ void Object::draw()
     float32 angle = body->GetAngle();
     const b2Vec2 &position = body->GetPosition();
 
-    glm::vec3 position_in_pix(position.x*M2P, - position.y*M2P,0.0F);
-    //    for(int i = 0; i < vertices.size() ; ++i){
-    //      const b2Vec2 & tmp_point = ((b2PolygonShape*)body->GetFixtureList()->GetShape())->GetVertex(i);
-    //    vertices[i].position.x = tmp_point.x*P2M;
-    //  vertices[i].position.y = tmp_point.y*P2M;
-    //}
+    glm::vec3 position_in_pix(position.x, - position.y,0.0F);
+    
     if (!program || !PV) return;
 
     // Calculate model matrix
     glm::mat4 model(1.0f);
-    model = glm::translate(model, glm::vec3(position.x * M2P, position.y * M2P,0));
-    model = glm::scale(model, scale);
+    
+    model = glm::translate(model, glm::vec3(position.x, position.y,0));
+    //model = glm::scale(model, scale);
     model = glm::rotate(model, rotation.x, glm::vec3(1.0f,0.0f,0.0f));
     model = glm::rotate(model, rotation.y, glm::vec3(0.0f,1.0f,0.0f));
     model = glm::rotate(model, rotation.z, glm::vec3(0.0f,0.0f,1.0f));
 
     program->use();
-
     glUniformMatrix4fv(PVLocation, 1, GL_FALSE, glm::value_ptr(*PV));
     glUniformMatrix4fv(MLocation, 1, GL_FALSE, glm::value_ptr(model));
 
