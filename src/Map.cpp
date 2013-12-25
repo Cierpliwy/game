@@ -146,8 +146,8 @@ void Map::addFloor(unsigned int x1, int unsigned y1,
     m_vertices.push_back(v1);
 }
 
-#include "Windows.h"
-#include "WinBase.h"
+//#include "Windows.h"
+//#include "WinBase.h"
 void Map::setPhysics(b2World * world){
 
     b2BodyDef myBodyDef;

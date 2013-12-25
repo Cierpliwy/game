@@ -36,8 +36,8 @@ void Game::initialize() {
 
     // Create SDL window
     m_window = SDL_CreateWindow("Gra", SDL_WINDOWPOS_CENTERED, 
-        SDL_WINDOWPOS_CENTERED, 1600, 900, 
-        SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN);
+        SDL_WINDOWPOS_CENTERED, 800, 600, 
+        SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );//| SDL_WINDOW_FULLSCREEN);
     if (!m_window) 
         throw GameException(GameException::SDL, "Window");
 
@@ -60,13 +60,11 @@ void Game::initialize() {
     glDepthFunc(GL_LESS);
     glFrontFace(GL_CW);
 
+    initializeWorldPhysics();
+    // initialize objects below this place
     // Load fire map by default
     m_map.init();
     m_map.load("../data/maps/fire/map");
-
-    initializeWorldPhysics();
-    // initialize objects below this place
-    m_map.load("../data/fire/map");
     m_map.generate(7.0f, -1.0f, 2.0f); //setPhysics after this !!!!
     m_map.setPhysics(world);
 
