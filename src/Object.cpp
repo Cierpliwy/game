@@ -1,6 +1,6 @@
 #include "Object.h"
 
-void Object::touched(){
+void Object::touched(Object * touched_by){
 
 }
 void Object::setPhysics(b2World * world, float pos_x, float pos_y, float width, 
@@ -144,8 +144,6 @@ void Object::draw()
     
     model = glm::translate(model, glm::vec3(position.x, position.y,0));
     model = glm::scale(model, scale);
-    //model = glm::rotate(model, rotation.x, glm::vec3(1.0f,0.0f,0.0f));
-    //model = glm::rotate(model, rotation.y, glm::vec3(0.0f,1.0f,0.0f));
     model = glm::rotate(model, angle, glm::vec3(0.0f,0.0f,1.0f));
 
     program->use();

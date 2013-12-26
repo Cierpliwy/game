@@ -4,8 +4,12 @@
 Player::Player(char * mesh_path): Object(mesh_path){
 }
 
-void Player::touched(){
-    jump_moves = 0;
+void Player::touched(Object * touched_by){
+    const vector<ObjectAction> &actions = touched_by->getObjectActions();
+    for(ObjectAction action : actions){
+        if(action.getAction() == ObjectAction::TypeOfAction::TERRAIN_TOUCHED)
+            jump_moves = 0;
+    }
 }
 
 void Player::setPhysics(b2World * world, float pos_x, float pos_y, float width, float height, bool dynamic){

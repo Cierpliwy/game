@@ -15,6 +15,38 @@
 
 using namespace std;
 
+//Class that represents actions that can take place while objects will touch
+class ObjectAction{
+
+    int value;
+
+    public:
+    enum TypeOfAction{
+        HEALTH_UP,
+        POINT_UP,
+        DAMAGE,
+        TERRAIN_TOUCHED,
+    };
+
+    private:
+
+    TypeOfAction action;
+
+    public:
+
+    ObjectAction(TypeOfAction action){
+        this->action = action;
+        value = 0;
+    }
+    ObjectAction(TypeOfAction action, int value){
+        this->action = action;
+        this->value = value;
+    }
+
+    TypeOfAction getAction(){ return action; } 
+    int getValue(){ return value; }
+};
+
 class Object 
 {
     string mesh_path;
@@ -37,21 +69,18 @@ class Object
     GLuint texLocation;
 
 protected:
-    enum ObjectType{
-        ENEMY,
-        TERRAIN
-    };
 
-    ObjectType objectType;
+    std::vector<ObjectAction> object_actions;
     b2Body* body;
     const b2World * world;
 
 public:
     Object(const char* mesh_path = NULL);
 
-    ObjectType getObjectType(){return objectType;}
+    //getObjectActions while touch something 
+    const std::vector<ObjectAction> &  getObjectActions(){return object_actions;}
 
-    void setObjectType(ObjectType type){objectType = type;}
+    void addObjectActions(ObjectAction action){object_actions.push_back(action);}
 
     //always load mesh before setting physics !!!
     virtual bool loadMesh(const char* mesh_path = NULL);
@@ -65,7 +94,7 @@ public:
     //call draw only after loadMesh and setPhysics !!!
     void draw();
 
-    virtual void touched();
+    virtual void touched(Object * touched_by);
     void setProgram(const Program &program);
     const Program& getProgram() const { return *program;}
 

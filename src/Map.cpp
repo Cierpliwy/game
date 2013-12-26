@@ -9,7 +9,7 @@ using namespace glm;
 Map::Map() : m_width(0), m_height(0), m_vao(0), m_vbo(0),
     m_gridVao(0), m_gridVbo(0), m_surface(NULL)
 {
-    setObjectType(ObjectType::TERRAIN);
+    addObjectActions(ObjectAction(ObjectAction::TypeOfAction::TERRAIN_TOUCHED));
 }
 
 Map::~Map(){

@@ -214,8 +214,10 @@ void Game::run() {
 
 
 void Game::BeginContact(b2Contact * contact){
-    ((Object*)contact->GetFixtureA()->GetUserData())->touched();
-    ((Object*)contact->GetFixtureB()->GetUserData())->touched();
+    Object *object1 = (Object*)contact->GetFixtureA()->GetUserData();
+    Object *object2 = (Object*)contact->GetFixtureB()->GetUserData(); 
+    object1->touched(object2);
+    object2->touched(object1);
 }
 
 void Game::EndContact(b2Contact * contact){

@@ -20,14 +20,13 @@ class Player : public Object
     //how many times we can apply force while jumping 
     const static int JUMPING_MAX = 6;
     int jump_moves;
-    glm::vec3 velocity;
-    glm::vec3 acceleration;
+    unsigned int lives;
 
 public:
-    Player(){jump_moves = 0;}
+    Player(){jump_moves = 0; lives = 100;}
     Player(char * mesh_path);
     void setPhysics(b2World * world, float pos_x, float pos_y, float width, float height, bool dynamic = true);
-    void touched();
+    void touched(Object * touched_by);
     void moveRight();
     void moveLeft();
     void jump();
