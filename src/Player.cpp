@@ -24,7 +24,7 @@ void Player::moveRight(){
     b2Vec2 vel = body->GetLinearVelocity();
     float force = 0;
     if(vel.x < 60){
-        force = 250;
+        force = 600;
     }
     body->ApplyForce(b2Vec2(force,0),body->GetWorldCenter(), true);
 
@@ -33,7 +33,7 @@ void Player::moveLeft(){
     b2Vec2 vel = body->GetLinearVelocity();
     float force = 0;
     if(vel.x > -60){
-        force = -250;
+        force = -600;
     }
     body->ApplyForce(b2Vec2(force,0),body->GetWorldCenter(), true);
 }

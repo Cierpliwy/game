@@ -129,7 +129,8 @@ bool Object::loadMesh(const char* mesh_path){
 
     return true;
 }
-
+#include "Windows.h"
+#include "WinBase.h"
 void Object::draw()
 {
     float32 angle = body->GetAngle();
@@ -142,6 +143,10 @@ void Object::draw()
     // Calculate model matrix
     glm::mat4 model(1.0f);
     
+    OutputDebugString("\n");
+    OutputDebugString(std::to_string(position.x).c_str());
+    OutputDebugString(" : ");
+    OutputDebugString(std::to_string(position.y).c_str());
     model = glm::translate(model, glm::vec3(position.x, position.y,0));
     model = glm::scale(model, scale);
     model = glm::rotate(model, angle, glm::vec3(0.0f,0.0f,1.0f));
