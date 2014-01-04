@@ -78,15 +78,38 @@ void Game::initialize() {
     objProgram.setVertexShader(objVertex);
     objProgram.link();
 
+    // Shadow shader
+    shadowVertex.load("../data/shadowCastVertex.glsl");
+    shadowVertex.compile();
+    shadowFragment.load("../data/shadowCastFragment.glsl");
+    shadowFragment.compile();
+    shadowProgram.create();
+    shadowProgram.setFragmentShader(shadowFragment);
+    shadowProgram.setVertexShader(shadowVertex);
+    shadowProgram.link();
+    textureLocation = shadowProgram.getUniformLocation("tex");
+    shadowResolutionLocation = shadowProgram.getUniformLocation("res");
+    positionLocation = shadowProgram.getUniformLocation("pos");
+    sizeLocation = shadowProgram.getUniformLocation("size");
+
     // cube that has 1.8 meters height and width
-    object.loadMesh("../data/cube.obj");
-    object.setPhysics(world, 15, 40, 1.8, 1.8);
+    object.loadMesh("../data/body.obj");
+    object.setPhysics(world, 15, 40, 5.8, 5.8);
     object.setProgram(objProgram);
 
     player = new Player();
     player->setProgram(objProgram);
-    player->loadMesh("../data/cube.obj");
-    player->setPhysics(world,20,40,2.5,2.5);
+    player->loadMesh("../data/head.obj");
+    player->setPhysics(world,20,40,5.5,5.5);
+
+    //Set render target
+    renderTarget.create(GL_TEXTURE_2D, 4096, 2048);
+    viewportSprite.generate(Rect<vec3>(
+                            vec3(-1.0f, -1.0f, 0.0f),
+                            vec3(1.0f, -1.0f, 0.0f),
+                            vec3(1.0f, 1.0f, 0.0f),
+                            vec3(-1.0f, 1.0f, 0.0f)));
+    shadowTarget.create(GL_TEXTURE_1D, 4096, 1);
 }
 
 Game::~Game(){
@@ -128,6 +151,8 @@ void Game::run() {
 
     while (!m_exit) {
 
+        if (glGetError() != GL_NO_ERROR) cout << "ERROR!" << endl;
+
         // Update time data
         delta = static_cast<float>(SDL_GetPerformanceCounter() - ticks) /
             SDL_GetPerformanceFrequency();
@@ -165,14 +190,10 @@ void Game::run() {
 
         // Update position 
         const Uint8 *keymap = SDL_GetKeyboardState(NULL);
-        float speed = 30;
-        //if (keymap[SDL_SCANCODE_RIGHT]) pos.x += delta*speed;
-        //if (keymap[SDL_SCANCODE_LEFT]) pos.x -= delta*speed;
-        //if (keymap[SDL_SCANCODE_UP]) pos.y += delta*speed;
-        //if (keymap[SDL_SCANCODE_DOWN]) pos.y -= delta*speed;
         if (keymap[SDL_SCANCODE_W]) player->jump();
         if (keymap[SDL_SCANCODE_A]) player->moveLeft();
         if (keymap[SDL_SCANCODE_D]) player->moveRight();
+
         // Get window ratio
         int w,h;
         SDL_GetWindowSize(m_window, &w, &h);
@@ -185,27 +206,68 @@ void Game::run() {
         glm::mat4 view = glm::lookAt(vec3(pos, 125.0f), vec3(pos, 0.0f), vec3(0,1,0));
         glm::mat4 PV = projection * view;
 
+        glm::mat4 mapProjection = glm::ortho(0.0f,m_map.getWidth(),
+                                             0.0f,m_map.getHeight(),
+                                             -1.0f,1.0f);
+        glm::mat4 PV2 = mapProjection;
+
         // Use this matrix for setting model's position in a world
         glm::mat4 model(1.0f); 
 
-        // Clear all used buffers for next frame
+        // Set clear color
         glClearColor(0,0,0,0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Draw map
-        m_map.setPV(PV);
-        m_map.setLightPos(pos);
-        m_map.setLightSize(sin(time*20)*2+50);
+        // Draw shadow casting mesh to texture
+        glBindFramebuffer(GL_FRAMEBUFFER, renderTarget.getFramebuffer());
+        glViewport(0,0,4096,2048);
+        glClear(GL_COLOR_BUFFER_BIT); 
+        m_map.setPV(PV2);
         m_map.setVisibility((time-offset));
+        m_map.draw(Map::MAP | Map::WHITE);
+        object.setPV(PV2);
+        object.setRotation(vec3(time*180));
+        object.draw(&renderTarget.getTexture());
+
+        // Get shadow data
+        glBindFramebuffer(GL_FRAMEBUFFER, shadowTarget.getFramebuffer());
+        glViewport(0,0,4096,1);
+        glClear(GL_COLOR_BUFFER_BIT); 
+        shadowProgram.use();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, renderTarget.getTexture().id());
+        glUniform1i(textureLocation, 0);
+        glUniform1f(shadowResolutionLocation, 0.1);
+        glUniform2f(positionLocation, pos.x, pos.y);
+        glUniform2f(sizeLocation, m_map.getWidth(), m_map.getHeight());
+        viewportSprite.draw();
+
+        // Final render
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(0,0,800,600);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glBindTexture(GL_TEXTURE_1D, shadowTarget.getTexture().id());
+        glGenerateMipmap(GL_TEXTURE_1D);
+        glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        m_map.setPlayerPos(pos);
+        m_map.setShadowTexture(&shadowTarget.getTexture());
+        m_map.setPV(PV);
+        m_map.setBackgroundX(pos.x/m_map.getWidth());
+        m_map.setBackgroundY(pos.y/m_map.getHeight());
         m_map.draw(m_mapTarget);
+        glBindTexture(GL_TEXTURE_1D, shadowTarget.getTexture().id());
+        glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
         // Draw object
         object.setPV(PV);
-        object.setRotation(vec3(time*180));
+        object.setRotation(vec3(0,time*180,0));
         object.draw();
 
         player->setPV(PV);
+        player->setRotation(vec3(0,time*180,0));
         player->draw();
+
         // Flip buffers
         SDL_GL_SwapWindow(m_window);
         world->Step(delta,4,4);

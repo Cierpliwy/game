@@ -11,8 +11,9 @@ public:
     ~Sprite();
 
     void load(const char *texFilePath);
+    void create(GLuint target, unsigned width, unsigned height);
     void generate(Rect<glm::vec3> rect);
-    GLuint getTextureID() {return texture.id();}
+    Texture &getTexture() {return texture;}
     void draw();
 
 private:

@@ -7,6 +7,7 @@
 #include "Map.h"
 #include "Object.h"
 #include "Player.h"
+#include "RenderTarget.h"
 #include <Box2D/Box2D.h>
 
 
@@ -15,7 +16,7 @@ class Game : public b2ContactListener
 public:
     Game() : 
         m_window(NULL), m_context(NULL), m_exit(false), world(NULL), 
-        m_mapTarget(Map::MAP | Map::SPRITES)
+        m_mapTarget(Map::MAP | Map::SPRITES | Map::BACKGROUND)
     {}
     ~Game();
     void initialize();
@@ -44,7 +45,18 @@ private:
     VertexShader objVertex;
     FragmentShader objFragment;
 
+    Program shadowProgram;
+    VertexShader shadowVertex;
+    FragmentShader shadowFragment;
+    GLuint shadowResolutionLocation;
+    GLuint textureLocation;
+    GLuint positionLocation;
+    GLuint sizeLocation;
+
     Object object;
+    RenderTarget renderTarget;
+    RenderTarget shadowTarget;
+    Sprite viewportSprite;
 };
 
 #endif //GAME_H

@@ -70,3 +70,21 @@ GLuint Program::getUniformLocation(const char *name) const
 {
     return glGetUniformLocation(m_id, name);
 }
+
+void Program::validate()
+{
+    GLint result;
+    glValidateProgram(m_id);
+    glGetProgramiv(m_id, GL_VALIDATE_STATUS, &result);
+    if (result != GL_TRUE) {
+        glGetProgramiv(m_id, GL_INFO_LOG_LENGTH, &result);
+        vector<char> log(result);
+        glGetProgramInfoLog(m_id, result, NULL, &log[0]);
+        throw GameException(GameException::INTERNAL,
+                            &log[0]); 
+    }
+
+    GLenum err = glGetError();
+    if (err != GL_NO_ERROR) 
+        throw GameException(GameException::GL, "Program", err); 
+}

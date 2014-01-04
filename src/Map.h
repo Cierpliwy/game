@@ -41,17 +41,12 @@ public:
         MAP = 1,
         SPRITES = 2,
         GRID = 4,
-        BACKGROUND = 8
+        BACKGROUND = 8,
+        WHITE = 16
     };
 
     // Set view perspective matrix
     void setPV(const glm::mat4 &PV) {m_PV = &PV;}
-
-    // Set light position
-    void setLightPos(const glm::vec2 &pos) {m_lightPos = &pos;}
-
-    // Set light size
-    void setLightSize(float size) {m_lightSize = size;}
 
     // Set visibility
     void setVisibility(float visibility) {m_visibility = visibility;}
@@ -61,6 +56,18 @@ public:
 
     // Set background x coordinate movement
     void setBackgroundY(float y) {m_backY = y;}
+
+    // Get map width
+    float getWidth() const {return m_width;}
+
+    // Get map height
+    float getHeight() const {return m_height;}
+
+    // Set shadow texture
+    void setShadowTexture(Texture *shadowTex) {m_shadowTex = shadowTex;}
+
+    // Set player position
+    void setPlayerPos(glm::vec2 pos) {m_playerPos = pos;}
 
 private:
 
@@ -136,15 +143,17 @@ private:
     float m_visibility;
     float m_backX;
     float m_backY;
+    float m_backgroundScale;
+    glm::vec2 m_playerPos;
 
     // Uniform locations
     GLuint m_PVLocation;
-    GLuint m_lightPosLocation;
-    GLuint m_lightSizeLocation;
     GLuint m_texture0Location;
     GLuint m_texture1Location;
     GLuint m_visibilityLocation;
     GLuint m_enableGridLocation;
+    GLuint m_shadowTexLocation;
+    GLuint m_playerPosLocation;
 
     // Textures
     SDL_Surface *m_surface;
@@ -152,10 +161,10 @@ private:
     Texture m_gfx;
     Sprite m_back;
     Sprite m_sprites[3];
+    Texture *m_shadowTex;
     
     // Collision data
     std::vector<Line<glm::vec2> > m_lines;
-
     std::vector<Object> objects;
 
     //physic body

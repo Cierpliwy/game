@@ -17,6 +17,11 @@ void Sprite::load(const char *filePath)
     texture.load(filePath);
 }
 
+void Sprite::create(GLuint target, unsigned width, unsigned height)
+{
+    texture.create(target, width, height);
+}
+
 void Sprite::generate(Rect<glm::vec3> rect)
 {
     // Y or V is flipped by loading from SDL

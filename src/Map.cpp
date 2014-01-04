@@ -7,7 +7,8 @@ using namespace std;
 using namespace glm;
 
 Map::Map() : m_width(0), m_height(0), m_vao(0), m_vbo(0),
-    m_gridVao(0), m_gridVbo(0), m_surface(NULL)
+    m_gridVao(0), m_gridVbo(0), m_surface(nullptr), m_shadowTex(nullptr),
+    body(nullptr)
 {
     addObjectActions(ObjectAction(ObjectAction::TypeOfAction::TERRAIN_TOUCHED));
 }
@@ -38,14 +39,16 @@ void Map::init() {
     m_program.setVertexShader(m_vertexShader);
     m_program.link();
      
+
     // Get uniform locations
     m_PVLocation = m_program.getUniformLocation("PV");
-    m_lightPosLocation = m_program.getUniformLocation("light");
-    m_lightSizeLocation = m_program.getUniformLocation("lightSize");
     m_texture0Location = m_program.getUniformLocation("tex0");
     m_texture1Location = m_program.getUniformLocation("tex1");
     m_visibilityLocation = m_program.getUniformLocation("vis");
     m_enableGridLocation = m_program.getUniformLocation("grid");
+    m_shadowTexLocation = m_program.getUniformLocation("shadow");
+    m_playerPosLocation = m_program.getUniformLocation("playerPos");
+
 }
 
 void Map::load(const char *path){
@@ -159,6 +162,7 @@ void Map::setPhysics(b2World * world){
     b2BodyDef myBodyDef;
     myBodyDef.type = b2_staticBody;
     myBodyDef.position.Set(0, 0); //middle, bottom
+    if (body) world->DestroyBody(body);
     body = world->CreateBody(&myBodyDef);
 
     //b2PolygonShape polygonShape;
@@ -196,7 +200,7 @@ void Map::generate(float width, float depth, float uvFix)
     m_height = width * static_cast<float>(m_surface->h) / m_surface->w;
     m_depth = depth;
     m_uvFix = uvFix;
-
+    
     // Generate sprites
     float sprDepth = 0.9f;
     for(unsigned int i = 0; i < 3; ++i) {
@@ -207,12 +211,13 @@ void Map::generate(float width, float depth, float uvFix)
             vec3(0.0f, m_height, sprDepth*depth)));
         sprDepth -= 0.4f;
     }
-    float backgroundScale = 1.5f;
+    m_backgroundScale = 1.5f;
+
     m_back.generate(Rect<vec3>(
-                    vec3(-1.0f*backgroundScale*m_width, -1.0f*backgroundScale*m_height, -100.0f),
-                    vec3(1.0f*backgroundScale*m_width, -1.0f*backgroundScale*m_height, -100.0f),
-                    vec3(1.0f*backgroundScale*m_width, 1.0f*backgroundScale*m_height, -100.0f),
-                    vec3(-1.0f*backgroundScale*m_width, 1.0f*backgroundScale*m_height, -100.0f)));
+                    vec3(-1.0f*m_backgroundScale, -1.0f*m_backgroundScale, -100.0f),
+                    vec3(1.0f*m_backgroundScale, -1.0f*m_backgroundScale, -100.0f),
+                    vec3(1.0f*m_backgroundScale, 1.0f*m_backgroundScale, -100.0f),
+                    vec3(-1.0f*m_backgroundScale, 1.0f*m_backgroundScale, -100.0f)));
 
     // Process pixels
     for(int i = 0; i < m_surface->w; ++i) {
@@ -341,25 +346,46 @@ void Map::draw(unsigned int target)
 {
     m_program.use();
 
-    glUniform2f(m_lightPosLocation, m_lightPos->x, m_lightPos->y); 
+    //cout << "PRE" << endl;
+    //m_program.validate();
+    //cout << "AFTER" << endl;
+
+    if (target & WHITE)
+        glUniform1ui(m_enableGridLocation, 1);
+    else {
+        if (!m_shadowTex) return;
+        glUniform1ui(m_enableGridLocation, 0);
+    }
+
+    if (target & BACKGROUND) {
+        glUniform1f(m_visibilityLocation, 1);
+        glm::mat4 tmpPV = glm::ortho(-1.0f,1.0f,-1.0f,1.0f,-100.0f,100.0f);
+        float off = (2*m_backgroundScale - 2.0f) / 2.0f;
+        tmpPV = glm::translate(tmpPV, vec3(off-m_backX, off-m_backY,0));
+        glUniformMatrix4fv(m_PVLocation, 1, GL_FALSE, value_ptr(tmpPV));
+        glDisable(GL_DEPTH_TEST);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, m_back.getTexture().id());
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, 0); 
+        glUniform1i(m_texture0Location, 0);
+        m_back.draw();
+        glEnable(GL_DEPTH_TEST);
+    }
+
+    glUniform2f(m_playerPosLocation, m_playerPos.x, m_playerPos.y);
     glUniform1f(m_visibilityLocation, m_visibility);
-    glUniform1ui(m_enableGridLocation, 0);
     glUniformMatrix4fv(m_PVLocation, 1, GL_FALSE, value_ptr(*m_PV));
-
-    glDisable(GL_DEPTH_TEST);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_back.getTextureID());
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, 0); 
-    glUniform1i(m_texture0Location, 0);
-    glUniform1f(m_lightSizeLocation, 2*m_lightSize);
-    m_back.draw();
-    glUniform1f(m_lightSizeLocation, m_lightSize);
-    glEnable(GL_DEPTH_TEST);
-
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, m_gfx.id());
     glUniform1i(m_texture1Location, 1);
+
+
+    if (m_shadowTex) {
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_1D, m_shadowTex->id());
+        glUniform1i(m_shadowTexLocation, 2);
+    }
 
     if (target & MAP) {
         glActiveTexture(GL_TEXTURE0);
@@ -378,7 +404,7 @@ void Map::draw(unsigned int target)
 
         for(unsigned int i = 0; i < 3; ++i) {
             glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, m_sprites[i].getTextureID());
+            glBindTexture(GL_TEXTURE_2D, m_sprites[i].getTexture().id());
             glUniform1i(m_texture0Location, 0);
             m_sprites[i].draw();
         }

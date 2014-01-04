@@ -92,7 +92,7 @@ public:
         bool dynamic = true);
 
     //call draw only after loadMesh and setPhysics !!!
-    void draw();
+    void draw(Texture *customtexture = NULL);
 
     virtual void touched(Object * touched_by);
     void setProgram(const Program &program);
@@ -108,6 +108,8 @@ public:
 
     void setScale(const glm::vec3 &scale){this->scale = scale;}
     glm::vec3 getScale() const {return scale;}
+
+    Texture & getTexture() { return texture;}
 
     ~Object(void);
 };

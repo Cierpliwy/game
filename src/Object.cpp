@@ -129,9 +129,11 @@ bool Object::loadMesh(const char* mesh_path){
 
     return true;
 }
-#include "Windows.h"
-#include "WinBase.h"
-void Object::draw()
+
+//#include "Windows.h"
+//#include "WinBase.h"
+
+void Object::draw(Texture *customtexture)
 {
     float32 angle = body->GetAngle();
     const b2Vec2 &position = body->GetPosition();
@@ -143,20 +145,29 @@ void Object::draw()
     // Calculate model matrix
     glm::mat4 model(1.0f);
     
-    OutputDebugString("\n");
-    OutputDebugString(std::to_string(position.x).c_str());
-    OutputDebugString(" : ");
-    OutputDebugString(std::to_string(position.y).c_str());
+    //OutputDebugString("\n");
+    //OutputDebugString(std::to_string(position.x).c_str());
+    //OutputDebugString(" : ");
+    //OutputDebugString(std::to_string(position.y).c_str());
     model = glm::translate(model, glm::vec3(position.x, position.y,0));
     model = glm::scale(model, scale);
-    model = glm::rotate(model, angle, glm::vec3(0.0f,0.0f,1.0f));
+    if (rotation == glm::vec3(0.0f))
+        model = glm::rotate(model, angle, glm::vec3(0.0f,0.0f,1.0f));
+    else {
+        model = glm::rotate(model, rotation.x, glm::vec3(1.0f,0.0f,0.0f));
+        model = glm::rotate(model, rotation.y, glm::vec3(0.0f,1.0f,0.0f));
+        model = glm::rotate(model, rotation.z, glm::vec3(0.0f,0.0f,1.0f));
+    }
 
     program->use();
     glUniformMatrix4fv(PVLocation, 1, GL_FALSE, glm::value_ptr(*PV));
     glUniformMatrix4fv(MLocation, 1, GL_FALSE, glm::value_ptr(model));
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture.id());
+    if (customtexture)
+        glBindTexture(GL_TEXTURE_2D, customtexture->id());
+    else 
+        glBindTexture(GL_TEXTURE_2D, texture.id());
     glUniform1i(texLocation, 0);
 
     glBindVertexArray(vao);

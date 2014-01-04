@@ -2,16 +2,21 @@
 #define RENDER_TARGET_H
 #include "Texture.h"
 
-class Rendertarget
+class RenderTarget
 {
 public:
-    Rendertarget();
-    ~Rendertarget();
+    RenderTarget();
+    ~RenderTarget();
 
-    void create(unsigned int width, unsigned int height);
+    void create(GLuint target, unsigned int width, unsigned int height);
+
+    Texture& getTexture() { return m_texture; }
+    GLuint getFramebuffer() { return m_framebuffer; }
 
 private:
-    Texture texture;
+
+    Texture m_texture;
+    GLuint m_framebuffer;
 
 };
 
