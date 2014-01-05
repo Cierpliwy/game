@@ -71,7 +71,7 @@ GLuint Program::getUniformLocation(const char *name) const
     return glGetUniformLocation(m_id, name);
 }
 
-void Program::validate()
+void Program::validate() const
 {
     GLint result;
     glValidateProgram(m_id);

@@ -155,8 +155,6 @@ void Map::addFloor(unsigned int x1, int unsigned y1,
     m_vertices.push_back(v1);
 }
 
-//#include "Windows.h"
-//#include "WinBase.h"
 void Map::setPhysics(b2World * world){
 
     b2BodyDef myBodyDef;
@@ -174,14 +172,6 @@ void Map::setPhysics(b2World * world){
 
     for(Line<glm::vec2> line : m_lines){
         edgeShape.Set(b2Vec2(line.a.x,line.a.y),b2Vec2(line.b.x,line.b.y)); //adding line
-        //OutputDebugString("\nVec2: ");
-        //OutputDebugString(std::to_string(line.a.x*P2M).c_str());
-        //OutputDebugString(" : ");
-        //OutputDebugString(std::to_string(line.a.y*P2M).c_str());
-        //OutputDebugString(" Vec22: ");
-        //OutputDebugString(std::to_string(line.b.x*P2M).c_str());
-        //OutputDebugString(" : ");
-        //OutputDebugString(std::to_string(line.b.y*P2M).c_str());
         body->CreateFixture(&myFixtureDef); //add a fixture to the body
     } 
 
@@ -269,9 +259,12 @@ void Map::generate(float width, float depth, float uvFix)
                 if (sqrPts & DOWNLEFT) points.push_back(vec2(i,j+1));
                 if (points.size() == 3) {
                     //We can add filling rectangle to smooth it out.
-                    addFilledTriangle(points[0].x, points[0].y,
-                        points[1].x, points[1].y,
-                        points[2].x, points[2].y);
+                    addFilledTriangle(static_cast<unsigned int>(points[0].x), 
+                                      static_cast<unsigned int>(points[0].y),
+                                      static_cast<unsigned int>(points[1].x), 
+                                      static_cast<unsigned int>(points[1].y),
+                                      static_cast<unsigned int>(points[2].x),
+                                      static_cast<unsigned int>(points[2].y));
 
                     // Add collision lines
                     m_lines.push_back(Line<vec2>(points[0], points[1]));
@@ -293,10 +286,14 @@ void Map::generate(float width, float depth, float uvFix)
         if (l.a.y > l.b.y) uvx = -1.0f;
         if (l.a.y < l.b.y) uvx = 1.0f;
 
-        addFloor(l.a.x, l.a.y, l.b.x, l.b.y, uvx, uvy);
+        addFloor(static_cast<unsigned>(l.a.x), static_cast<unsigned>(l.a.y), 
+                 static_cast<unsigned>(l.b.x), static_cast<unsigned>(l.b.y), 
+                 uvx, uvy);
 
-        m_lines[i].a = getPos(l.a.x, l.a.y);
-        m_lines[i].b = getPos(l.b.x, l.b.y);
+        m_lines[i].a = getPos(static_cast<unsigned>(l.a.x), 
+                              static_cast<unsigned>(l.a.y));
+        m_lines[i].b = getPos(static_cast<unsigned>(l.b.x),
+                              static_cast<unsigned>(l.b.y));
     }
 
     // Sending data to OpenGL
@@ -344,54 +341,49 @@ void Map::generate(float width, float depth, float uvFix)
 
 void Map::draw(unsigned int target)
 {
+    if (!m_shadowTex) return;
     m_program.use();
 
-    //cout << "PRE" << endl;
-    //m_program.validate();
-    //cout << "AFTER" << endl;
+    glUniform1i(m_texture0Location, 0);
+    glUniform1i(m_texture1Location, 1);
+    glUniform1i(m_shadowTexLocation, 2);
 
     if (target & WHITE)
         glUniform1ui(m_enableGridLocation, 1);
     else {
-        if (!m_shadowTex) return;
         glUniform1ui(m_enableGridLocation, 0);
     }
 
     if (target & BACKGROUND) {
+        
         glUniform1f(m_visibilityLocation, 1);
         glm::mat4 tmpPV = glm::ortho(-1.0f,1.0f,-1.0f,1.0f,-100.0f,100.0f);
         float off = (2*m_backgroundScale - 2.0f) / 2.0f;
         tmpPV = glm::translate(tmpPV, vec3(off-m_backX, off-m_backY,0));
         glUniformMatrix4fv(m_PVLocation, 1, GL_FALSE, value_ptr(tmpPV));
         glDisable(GL_DEPTH_TEST);
+
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_back.getTexture().id());
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, 0); 
-        glUniform1i(m_texture0Location, 0);
+
         m_back.draw();
         glEnable(GL_DEPTH_TEST);
+        
     }
 
     glUniform2f(m_playerPosLocation, m_playerPos.x, m_playerPos.y);
     glUniform1f(m_visibilityLocation, m_visibility);
     glUniformMatrix4fv(m_PVLocation, 1, GL_FALSE, value_ptr(*m_PV));
+
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, m_gfx.id());
-    glUniform1i(m_texture1Location, 1);
 
-
-    if (m_shadowTex) {
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_1D, m_shadowTex->id());
-        glUniform1i(m_shadowTexLocation, 2);
-    }
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_1D, m_shadowTex->id());
 
     if (target & MAP) {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_texture.id());
-        glUniform1i(m_texture0Location, 0);
-
 
         glBindVertexArray(m_vao);
         glDrawArrays(GL_TRIANGLES, 0, m_vertices.size());
@@ -405,7 +397,6 @@ void Map::draw(unsigned int target)
         for(unsigned int i = 0; i < 3; ++i) {
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, m_sprites[i].getTexture().id());
-            glUniform1i(m_texture0Location, 0);
             m_sprites[i].draw();
         }
 

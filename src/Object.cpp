@@ -68,8 +68,8 @@ void Object::setPhysics(b2World * world, float pos_x, float pos_y, float width,
 
     b2FixtureDef fixture;
     fixture.shape = &shape;
-    fixture.density=1.0;
-    fixture.friction = 0.4;
+    fixture.density=1.0f;
+    fixture.friction = 0.4f;
     fixture.userData = this;
     this->body -> CreateFixture(&fixture);
 }
@@ -130,9 +130,6 @@ bool Object::loadMesh(const char* mesh_path){
     return true;
 }
 
-//#include "Windows.h"
-//#include "WinBase.h"
-
 void Object::draw(Texture *customtexture)
 {
     float32 angle = body->GetAngle();
@@ -145,10 +142,6 @@ void Object::draw(Texture *customtexture)
     // Calculate model matrix
     glm::mat4 model(1.0f);
     
-    //OutputDebugString("\n");
-    //OutputDebugString(std::to_string(position.x).c_str());
-    //OutputDebugString(" : ");
-    //OutputDebugString(std::to_string(position.y).c_str());
     model = glm::translate(model, glm::vec3(position.x, position.y,0));
     model = glm::scale(model, scale);
     if (rotation == glm::vec3(0.0f))

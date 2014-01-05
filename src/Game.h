@@ -44,6 +44,7 @@ private:
     Program objProgram;
     VertexShader objVertex;
     FragmentShader objFragment;
+    GLuint whiteLocation;
 
     Program shadowProgram;
     VertexShader shadowVertex;

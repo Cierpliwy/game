@@ -1,8 +1,4 @@
-#ifdef WIN32
-#include "Windows.h"
-#include "WinBase.h"
-#endif
-
+#include "Debug.h"
 #include "SDL.h"
 #include "SDL_image.h"
 #include "GL/glew.h"
@@ -42,6 +38,10 @@ void Game::initialize() {
         throw GameException(GameException::SDL, "Window");
 
     // Create OpenGL context for window.
+#ifdef DEBUG
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
+#endif
+
     m_context = SDL_GL_CreateContext(m_window);
     if (!m_context) 
         throw GameException(GameException::SDL, "Context");
@@ -54,6 +54,17 @@ void Game::initialize() {
     GLenum err = glewInit();
     if (err != GLEW_OK) 
         throw GameException(GameException::GLEW, "Init", err);
+
+#ifdef DEBUG
+    // If we have debug output extension. We would like to use it ;)
+    if (GLEW_AMD_debug_output) {
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        glDebugMessageCallbackAMD((GLDEBUGPROCAMD)gameDebugCallbackAMD, nullptr);
+    } else if (GLEW_ARB_debug_output) {
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        glDebugMessageCallbackARB((GLDEBUGPROCARB)gameDebugCallbackARB, nullptr);
+    }
+#endif
 
     // Common OpenGL settings
     glEnable(GL_DEPTH_TEST);
@@ -77,6 +88,7 @@ void Game::initialize() {
     objProgram.setFragmentShader(objFragment);
     objProgram.setVertexShader(objVertex);
     objProgram.link();
+    whiteLocation = objProgram.getUniformLocation("white");
 
     // Shadow shader
     shadowVertex.load("../data/shadowCastVertex.glsl");
@@ -94,7 +106,7 @@ void Game::initialize() {
 
     // cube that has 1.8 meters height and width
     object.loadMesh("../data/body.obj");
-    object.setPhysics(world, 15, 40, 5.8, 5.8);
+    object.setPhysics(world, 15.0f, 40.0f, 5.8f, 5.8f);
     object.setProgram(objProgram);
 
     player = new Player();
@@ -151,7 +163,13 @@ void Game::run() {
 
     while (!m_exit) {
 
-        if (glGetError() != GL_NO_ERROR) cout << "ERROR!" << endl;
+        if (glGetError() != GL_NO_ERROR) {
+#ifdef _WIN32
+            OutputDebugString((const char*)gluErrorString(glGetError()));
+            OutputDebugString("\n");
+#endif
+            cout << "ERROR!" << endl;
+        }
 
         // Update time data
         delta = static_cast<float>(SDL_GetPerformanceCounter() - ticks) /
@@ -202,6 +220,7 @@ void Game::run() {
         // Basic matrix settings
         pos.x = player->getPosition().x;
         pos.y = player->getPosition().y; 
+        pos.y += 2; //Move eye up.
         glm::mat4 projection = glm::perspective(45.0f, ratio, 0.1f,1000.0f);
         glm::mat4 view = glm::lookAt(vec3(pos, 125.0f), vec3(pos, 0.0f), vec3(0,1,0));
         glm::mat4 PV = projection * view;
@@ -224,8 +243,11 @@ void Game::run() {
         m_map.setPV(PV2);
         m_map.setVisibility((time-offset));
         m_map.draw(Map::MAP | Map::WHITE);
+
+        objProgram.use();
+        glUniform1ui(whiteLocation, 1);
         object.setPV(PV2);
-        object.setRotation(vec3(time*180));
+        object.setRotation(vec3(0,time*180,0));
         object.draw(&renderTarget.getTexture());
 
         // Get shadow data
@@ -236,7 +258,7 @@ void Game::run() {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, renderTarget.getTexture().id());
         glUniform1i(textureLocation, 0);
-        glUniform1f(shadowResolutionLocation, 0.1);
+        glUniform1f(shadowResolutionLocation, 0.1f);
         glUniform2f(positionLocation, pos.x, pos.y);
         glUniform2f(sizeLocation, m_map.getWidth(), m_map.getHeight());
         viewportSprite.draw();
@@ -245,21 +267,27 @@ void Game::run() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0,0,800,600);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         glBindTexture(GL_TEXTURE_1D, shadowTarget.getTexture().id());
-        glGenerateMipmap(GL_TEXTURE_1D);
         glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glBindTexture(GL_TEXTURE_1D, 0);
+
         m_map.setPlayerPos(pos);
         m_map.setShadowTexture(&shadowTarget.getTexture());
         m_map.setPV(PV);
         m_map.setBackgroundX(pos.x/m_map.getWidth());
         m_map.setBackgroundY(pos.y/m_map.getHeight());
         m_map.draw(m_mapTarget);
+
         glBindTexture(GL_TEXTURE_1D, shadowTarget.getTexture().id());
         glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glBindTexture(GL_TEXTURE_1D, 0);
 
         // Draw object
+        objProgram.use();
+        glUniform1ui(whiteLocation, 0);
         object.setPV(PV);
         object.setRotation(vec3(0,time*180,0));
         object.draw();

@@ -1,3 +1,4 @@
+#include "Debug.h"
 #include "Game.h"
 #include "GameException.h"
 #include <iostream>
@@ -12,8 +13,14 @@ int main(int, char *[])
         game.run();
         game.cleanup();
     } catch (GameException &e) {
+#ifdef _WIN32
+        OutputDebugString(e.what());
+#endif
         cerr << e.what() << endl;
     } catch (exception &e) {
+#ifdef _WIN32
+        OutputDebugString(e.what());
+#endif
         cerr << e.what() << endl;
     }
 

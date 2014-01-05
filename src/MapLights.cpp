@@ -21,7 +21,7 @@ bool MapLights::load(string _patch){
 
     for(string &line : split_vec){
         vector< string > values;
-	    for(int i =0, j =0; i < line.size(); ++i){
+	    for(unsigned int i =0, j =0; i < line.size(); ++i){
             if((line.size() > i ) || (line[i]==';')){
                 values.push_back(line.substr(j,i-j));
                 j = i+1;
@@ -31,7 +31,9 @@ bool MapLights::load(string _patch){
         if(values.size() != NUMBER_OF_VARIABLES_IN_FILE_LINE){
             return false;
         }
-        lights.push_back(Light(atof(values[0].c_str()),atof(values[1].c_str()),atof(values[2].c_str())));
+        lights.push_back(Light(static_cast<float>(atof(values[0].c_str())),
+                               static_cast<float>(atof(values[1].c_str())),
+                               static_cast<float>(atof(values[2].c_str()))));
     }
 
     return true;

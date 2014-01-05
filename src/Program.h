@@ -15,7 +15,7 @@ public:
     GLuint getUniformLocation(const char *name) const;
     void link();
     void use() const;
-    void validate();
+    void validate() const;
 
 private:
     void checkErrors();
