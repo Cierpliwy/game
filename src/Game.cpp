@@ -122,6 +122,9 @@ void Game::initialize() {
         vec3(1.0f, 1.0f, 0.0f),
         vec3(-1.0f, 1.0f, 0.0f)));
     shadowTarget.create(GL_TEXTURE_1D, 4096, 1);
+
+    //Load font
+    font.load("../data/font.png");
 }
 
 Game::~Game(){
@@ -296,6 +299,10 @@ void Game::run() {
         player->setRotation(vec3(0,time*180,0));
         player->draw();
 
+        // Print some text
+        font.print("Losowy text... Trolololo\nI nowa linia.. haha!",0.03,-0.9,0.9);
+        font.print(to_string(delta*1000),0.03,0.6,0.9);
+        font.print("ms", 0.03, 0.9,0.9);
         // Flip buffers
         SDL_GL_SwapWindow(m_window);
         world->Step(delta,4,4);

@@ -8,6 +8,7 @@
 #include "Object.h"
 #include "Player.h"
 #include "RenderTarget.h"
+#include "Font.h"
 #include <Box2D/Box2D.h>
 
 
@@ -58,6 +59,8 @@ private:
     RenderTarget renderTarget;
     RenderTarget shadowTarget;
     Sprite viewportSprite;
+
+    Font font;
 };
 
 #endif //GAME_H
