@@ -117,10 +117,10 @@ void Game::initialize() {
     //Set render target
     renderTarget.create(GL_TEXTURE_2D, 4096, 2048);
     viewportSprite.generate(Rect<vec3>(
-                            vec3(-1.0f, -1.0f, 0.0f),
-                            vec3(1.0f, -1.0f, 0.0f),
-                            vec3(1.0f, 1.0f, 0.0f),
-                            vec3(-1.0f, 1.0f, 0.0f)));
+        vec3(-1.0f, -1.0f, 0.0f),
+        vec3(1.0f, -1.0f, 0.0f),
+        vec3(1.0f, 1.0f, 0.0f),
+        vec3(-1.0f, 1.0f, 0.0f)));
     shadowTarget.create(GL_TEXTURE_1D, 4096, 1);
 }
 
@@ -162,10 +162,10 @@ void Game::run() {
     float offset = time;
 
     while (!m_exit) {
-
-        if (glGetError() != GL_NO_ERROR) {
+        GLenum error = glGetError();
+        if (error != GL_NO_ERROR) {
 #ifdef _WIN32
-            OutputDebugString((const char*)gluErrorString(glGetError()));
+            OutputDebugString((const char*)gluErrorString(error));
             OutputDebugString("\n");
 #endif
             cout << "ERROR!" << endl;
@@ -226,8 +226,8 @@ void Game::run() {
         glm::mat4 PV = projection * view;
 
         glm::mat4 mapProjection = glm::ortho(0.0f,m_map.getWidth(),
-                                             0.0f,m_map.getHeight(),
-                                             -1.0f,1.0f);
+            0.0f,m_map.getHeight(),
+            -1.0f,1.0f);
         glm::mat4 PV2 = mapProjection;
 
         // Use this matrix for setting model's position in a world
@@ -245,10 +245,10 @@ void Game::run() {
         m_map.draw(Map::MAP | Map::WHITE);
 
         objProgram.use();
-        glUniform1ui(whiteLocation, 1);
+        glUniform1i(whiteLocation, 1);
         object.setPV(PV2);
         object.setRotation(vec3(0,time*180,0));
-        object.draw(&renderTarget.getTexture());
+        object.draw();
 
         // Get shadow data
         glBindFramebuffer(GL_FRAMEBUFFER, shadowTarget.getFramebuffer());
@@ -287,7 +287,7 @@ void Game::run() {
 
         // Draw object
         objProgram.use();
-        glUniform1ui(whiteLocation, 0);
+        glUniform1i(whiteLocation, 0);
         object.setPV(PV);
         object.setRotation(vec3(0,time*180,0));
         object.draw();

@@ -24,7 +24,7 @@ void Player::moveRight(){
     b2Vec2 vel = body->GetLinearVelocity();
     float force = 0;
     if(vel.x < 60){
-        force = 600;
+        force = 1400;
     }
     body->ApplyForce(b2Vec2(force,0),body->GetWorldCenter(), true);
 
@@ -33,14 +33,14 @@ void Player::moveLeft(){
     b2Vec2 vel = body->GetLinearVelocity();
     float force = 0;
     if(vel.x > -60){
-        force = -600;
+        force = -1400;
     }
     body->ApplyForce(b2Vec2(force,0),body->GetWorldCenter(), true);
 }
 
 void Player::jump(){
     if(jump_moves < JUMPING_MAX){
-        float force = body->GetMass() * 20; //f = mv/t
+        float force = body->GetMass() * 40; //f = mv/t
         this->body->ApplyLinearImpulse(b2Vec2(0,force), body->GetWorldCenter(),true);
         jump_moves++;
     }

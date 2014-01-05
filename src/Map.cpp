@@ -349,9 +349,9 @@ void Map::draw(unsigned int target)
     glUniform1i(m_shadowTexLocation, 2);
 
     if (target & WHITE)
-        glUniform1ui(m_enableGridLocation, 1);
+        glUniform1i(m_enableGridLocation, 1);
     else {
-        glUniform1ui(m_enableGridLocation, 0);
+        glUniform1i(m_enableGridLocation, 0);
     }
 
     if (target & BACKGROUND) {
@@ -404,7 +404,7 @@ void Map::draw(unsigned int target)
     }
 
     if (target & GRID) {
-        glUniform1ui(m_enableGridLocation, 1);
+        glUniform1i(m_enableGridLocation, 1);
         glDisable(GL_DEPTH_TEST);
         glBindVertexArray(m_gridVao);
         glDrawArrays(GL_LINES, 0, m_gridVertices.size()); 

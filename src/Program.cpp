@@ -83,8 +83,4 @@ void Program::validate() const
         throw GameException(GameException::INTERNAL,
                             &log[0]); 
     }
-
-    GLenum err = glGetError();
-    if (err != GL_NO_ERROR) 
-        throw GameException(GameException::GL, "Program", err); 
 }
