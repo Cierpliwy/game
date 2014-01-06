@@ -300,9 +300,11 @@ void Game::run() {
         player->draw();
 
         // Print some text
-        font.print("Losowy text... Trolololo\nI nowa linia.. haha!",0.03,-0.9,0.9);
-        font.print(to_string(delta*1000),0.03,0.6,0.9);
-        font.print("ms", 0.03, 0.9,0.9);
+        font.print("Twoja pozycja:\n\nx:\ny:",0.03,-0.9,0.9);
+        font.print(to_string(pos.x),0.03,-0.8,0.9-0.06*1.5);
+        font.print(to_string(pos.y),0.03,-0.8,0.9-0.09*1.5);
+        font.print(to_string(1/delta),0.03,0.6,0.9);
+        font.print("FPS", 0.03, 0.9,0.9);
         // Flip buffers
         SDL_GL_SwapWindow(m_window);
         world->Step(delta,4,4);

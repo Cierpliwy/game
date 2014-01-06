@@ -10,6 +10,11 @@ void Font::load(const std::string &fontFile)
         vec3(1.0f, 1.0f, 0.0f),
         vec3(-1.0f, 1.0f, 0.0f)));
 
+    glBindTexture(GL_TEXTURE_2D, m_sprite.getTexture().id());
+    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
     m_vertex.load("../data/textVertex.glsl");
     m_vertex.compile();
     m_fragment.load("../data/textFragment.glsl");
