@@ -47,7 +47,7 @@ void Game::initialize() {
         throw GameException(GameException::SDL, "Context");
 
     // Enable v-sync
-    SDL_GL_SetSwapInterval(1);
+    SDL_GL_SetSwapInterval(0);
 
     // Load OpenGL by getting functions bodies (for Windows)
     glewExperimental = GL_TRUE;
@@ -240,6 +240,7 @@ void Game::run() {
         glClearColor(0,0,0,0);
 
         // Draw shadow casting mesh to texture
+        Uint64 shadowMapTime = SDL_GetPerformanceCounter();
         glBindFramebuffer(GL_FRAMEBUFFER, renderTarget.getFramebuffer());
         glViewport(0,0,4096,2048);
         glClear(GL_COLOR_BUFFER_BIT); 
@@ -252,8 +253,12 @@ void Game::run() {
         object.setPV(PV2);
         object.setRotation(vec3(0,time*180,0));
         object.draw();
+        float shadowMapMs = 
+            static_cast<float>(SDL_GetPerformanceCounter()-shadowMapTime) /
+                               SDL_GetPerformanceFrequency() * 1000.0f;
 
         // Get shadow data
+        Uint64 rayTime = SDL_GetPerformanceCounter();
         glBindFramebuffer(GL_FRAMEBUFFER, shadowTarget.getFramebuffer());
         glViewport(0,0,4096,1);
         glClear(GL_COLOR_BUFFER_BIT); 
@@ -265,8 +270,12 @@ void Game::run() {
         glUniform2f(positionLocation, pos.x, pos.y);
         glUniform2f(sizeLocation, m_map.getWidth(), m_map.getHeight());
         viewportSprite.draw();
+        float rayMs = 
+            static_cast<float>(SDL_GetPerformanceCounter()-rayTime) /
+                               SDL_GetPerformanceFrequency() * 1000.0f;
 
         // Final render
+        Uint64 renderTime = SDL_GetPerformanceCounter();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0,0,800,600);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -298,6 +307,9 @@ void Game::run() {
         player->setPV(PV);
         player->setRotation(vec3(0,time*180,0));
         player->draw();
+        float renderMs = 
+            static_cast<float>(SDL_GetPerformanceCounter()-renderTime) /
+                               SDL_GetPerformanceFrequency() * 1000.0f;
 
         // Print some text
         font.print("Twoja pozycja:\n\nx:\ny:",0.03,-0.9,0.9);
@@ -305,6 +317,17 @@ void Game::run() {
         font.print(to_string(pos.y),0.03,-0.8,0.9-0.09*1.5);
         font.print(to_string(1/delta),0.03,0.6,0.9);
         font.print("FPS", 0.03, 0.9,0.9);
+
+
+        font.print("Shadow map:",0.03,-0.9,0.6);
+        font.print(to_string(shadowMapMs),0.03,-0.5,0.6);
+
+        font.print("Ray map:",0.03,-0.9,0.55);
+        font.print(to_string(rayMs),0.03,-0.5,0.55);
+
+        font.print("Final render:",0.03,-0.9,0.50);
+        font.print(to_string(renderMs),0.03,-0.5,0.50);
+
         // Flip buffers
         SDL_GL_SwapWindow(m_window);
         world->Step(delta,4,4);
