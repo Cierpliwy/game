@@ -305,7 +305,6 @@ void Game::run() {
         object.draw();
 
         player->setPV(PV);
-        player->setRotation(vec3(0,time*180,0));
         player->draw();
         float renderMs = 
             static_cast<float>(SDL_GetPerformanceCounter()-renderTime) /

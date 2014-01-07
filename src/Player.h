@@ -21,10 +21,19 @@ class Player : public Object
     const static int JUMPING_MAX = 6;
     int jump_moves;
     unsigned int lives;
+    Object *left_leg, *right_leg, *torso, *head, *left_arm, *right_arm; 
 
 public:
     Player(){jump_moves = 0; lives = 100;}
     Player(char * mesh_path);
+
+    void setLeftLeg(Object *object);
+    void setRightLeg(Object *object);
+    void setTorso(Object *object);
+    void setHead(Object *object);
+    void setLeftArm(Object *object);
+    void setRightArm(Object *object);
+
     void setPhysics(b2World * world, float pos_x, float pos_y, float width, float height, bool dynamic = true);
     void touched(Object * touched_by);
     void moveRight();

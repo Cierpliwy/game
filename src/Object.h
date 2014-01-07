@@ -19,20 +19,21 @@ using namespace std;
 class ObjectAction{
 
     int value;
-
-    public:
+    string data;
+public:
     enum TypeOfAction{
         HEALTH_UP,
         POINT_UP,
+        BODY_PART,
         DAMAGE,
         TERRAIN_TOUCHED,
     };
 
-    private:
+private:
 
     TypeOfAction action;
 
-    public:
+public:
 
     ObjectAction(TypeOfAction action){
         this->action = action;
@@ -47,17 +48,19 @@ class ObjectAction{
     int getValue(){ return value; }
 };
 
-class Object 
-{
+class Object {
+
     string mesh_path;
+
+protected:
     GLuint vbo;
     GLuint vao;
     GLuint uvbuffer;
+    GLfloat width, height;
 
     glm::vec2 position;
     glm::vec3 rotation;
     glm::vec3 scale;
-
     std::vector<ObjectVertex> vertices;
     Texture texture;
 
@@ -68,11 +71,9 @@ class Object
     GLuint MLocation;
     GLuint texLocation;
 
-protected:
-
     std::vector<ObjectAction> object_actions;
     b2Body* body;
-    const b2World * world;
+    b2World * world;
 
 public:
     Object(const char* mesh_path = NULL);
@@ -92,7 +93,7 @@ public:
         bool dynamic = true);
 
     //call draw only after loadMesh and setPhysics !!!
-    void draw(Texture *customtexture = NULL);
+    virtual void draw(Texture *customtexture = NULL);
 
     virtual void touched(Object * touched_by);
     void setProgram(const Program &program);
@@ -105,6 +106,8 @@ public:
 
     void setRotation(const glm::vec3 &rotation){this->rotation = rotation;}
     glm::vec3 getRotation() const {return rotation;}
+
+    b2Body * getBody() {return body;}
 
     void setScale(const glm::vec3 &scale){this->scale = scale;}
     glm::vec3 getScale() const {return scale;}

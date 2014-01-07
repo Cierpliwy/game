@@ -3,13 +3,13 @@
 void Object::touched(Object * touched_by){
 
 }
-void Object::setPhysics(b2World * world, float pos_x, float pos_y, float width, 
-                        float height, bool dynamic){
-
+void Object::setPhysics(b2World * world, float pos_x, float pos_y, float width, float height, bool dynamic){
+    this->width = width; 
+    this->height = height;
     // how many points will be used as body in texture - 4 as square
     int32 count = 4;
     this->world = world;
-    glm::vec3 *vertices_tmp = new glm::vec3[4];
+    glm::vec3 *vertices_tmp = new glm::vec3[count];
 
     vertices_tmp[0].x = FLT_MAX;
     vertices_tmp[2].x = FLT_MIN;
@@ -50,16 +50,12 @@ void Object::setPhysics(b2World * world, float pos_x, float pos_y, float width,
     }
     scale.z = scale.y;
 
-
-    //create shape that will lock figure inside
-    b2PolygonShape simple_polygon;
-
     b2BodyDef bodyDef;
     if(dynamic)
         bodyDef.type = b2_dynamicBody;
     bodyDef.position.Set(pos_x, pos_y);
     bodyDef.userData = this;
-    bodyDef.fixedRotation = true;
+    bodyDef.fixedRotation = false;
     this->body = world->CreateBody(&bodyDef);
 
     b2PolygonShape shape;
@@ -76,10 +72,10 @@ void Object::setPhysics(b2World * world, float pos_x, float pos_y, float width,
 
 Object::Object(const char* mesh_path)
     : position(0), rotation(0), scale(1,1,1), program(nullptr), PV(nullptr),
-      PVLocation(0), MLocation(0), texLocation(0), vbo(0), vao(0) {
-    if(mesh_path){
-        this->mesh_path = mesh_path;
-    }
+    PVLocation(0), MLocation(0), texLocation(0), vbo(0), vao(0) {
+        if(mesh_path){
+            this->mesh_path = mesh_path;
+        }
 }
 
 void Object::setProgram(const Program &program) {
@@ -132,25 +128,22 @@ bool Object::loadMesh(const char* mesh_path){
 
 void Object::draw(Texture *customtexture)
 {
-    float32 angle = body->GetAngle();
+    const float32 angle = body->GetAngle();
     const b2Vec2 &position = body->GetPosition();
 
-    glm::vec3 position_in_pix(position.x, - position.y,0.0F);
-    
+
     if (!program || !PV) return;
 
     // Calculate model matrix
     glm::mat4 model(1.0f);
-    
+
     model = glm::translate(model, glm::vec3(position.x, position.y,0));
     model = glm::scale(model, scale);
-    if (rotation == glm::vec3(0.0f))
-        model = glm::rotate(model, angle, glm::vec3(0.0f,0.0f,1.0f));
-    else {
-        model = glm::rotate(model, rotation.x, glm::vec3(1.0f,0.0f,0.0f));
-        model = glm::rotate(model, rotation.y, glm::vec3(0.0f,1.0f,0.0f));
-        model = glm::rotate(model, rotation.z, glm::vec3(0.0f,0.0f,1.0f));
-    }
+
+    model = glm::rotate(model, rotation.x, glm::vec3(1.0f,0.0f,0.0f));
+    model = glm::rotate(model, rotation.y, glm::vec3(0.0f,1.0f,0.0f));
+    model = glm::rotate(model, rotation.z + angle , glm::vec3(0.0f,0.0f,1.0f));
+
 
     program->use();
     glUniformMatrix4fv(PVLocation, 1, GL_FALSE, glm::value_ptr(*PV));
