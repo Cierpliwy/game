@@ -15,29 +15,29 @@ void Player::touched(Object * touched_by){
 void Player::setPhysics(b2World * world, float pos_x, float pos_y, float width, float height, bool dynamic){
     Object::setPhysics( world, pos_x, pos_y, width, height,dynamic);
     this->body->SetBullet(true);
-    this->body->SetFixedRotation(true);
+    //this->body->SetFixedRotation(true);
 }
 void Player::moveRight(){
     //if(checkIfCrash(glm::vec2(pos.x+velocity.x*time,pos))){
 
     //}
-    if(rotation.y < 90)
-        rotation.y+=2;
+    //if(rotation.y < 90)
+        //rotation.y+=2;
     b2Vec2 vel = body->GetLinearVelocity();
     float force = 0;
     if(vel.x < 60){
-        force = 1400;
+        force = body->GetMass()*300;
     }
     body->ApplyForce(b2Vec2(force,0),body->GetWorldCenter(), true);
 
 }
 void Player::moveLeft(){
-    if(rotation.y > -90)
-        rotation.y-=2;
+    //if(rotation.y > -90)
+        //rotation.y-=2;
     b2Vec2 vel = body->GetLinearVelocity();
     float force = 0;
     if(vel.x > -60){
-        force = -1400;
+        force = -(body->GetMass()*300);
     }
     body->ApplyForce(b2Vec2(force,0),body->GetWorldCenter(), true);
 }
