@@ -49,7 +49,7 @@ void Particles::setPhysics(b2World * world, float pos_x, float pos_y, float widt
     scale.z = scale.y;
 
 
-    for(int i = 0; i < width*height*PARTICLES_PER_METER ; ++i){
+    for(int i = 0; i < 20 ; ++i){
         generateParticle();
     }
 }
@@ -61,14 +61,16 @@ void Particles::generateParticle(){
     float y = pos_y + (rand() % static_cast<int>(height));
     Particle particle;
     particle.setPhysics(world,x,y);
+
     particles.push_back(particle);
 }
 
-void Particles::draw(Texture *customtexture){
+void Particles::draw(){
 
     for(vector<Particle>::iterator it = particles.begin(); it != particles.end(); it++){
         //usuwamy dotkniete
         if(it->wasTouched()){
+            it->destroy();
             it = particles.erase(it);
             generateParticle();
         }
@@ -88,10 +90,8 @@ void Particles::draw(Texture *customtexture){
         glUniformMatrix4fv(MLocation, 1, GL_FALSE, glm::value_ptr(model));
 
         glActiveTexture(GL_TEXTURE0);
-        if (customtexture)
-            glBindTexture(GL_TEXTURE_2D, customtexture->id());
-        else 
-            glBindTexture(GL_TEXTURE_2D, texture.id());
+
+        glBindTexture(GL_TEXTURE_2D, texture.id());
         glUniform1i(texLocation, 0);
 
         glBindVertexArray(vao);

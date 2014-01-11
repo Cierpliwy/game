@@ -4,7 +4,7 @@
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
 
-#define PARTICLES_PER_METER 4
+#define PARTICLES_PER_METER 1
 #define RADIUS_OF_PARTICLE 0.1
 
 class Particles : public Object{
@@ -52,7 +52,6 @@ class Particles : public Object{
         }
 
         ~Particle(){
-            world->DestroyBody(body);
         }
     };
 
@@ -69,7 +68,7 @@ public:
         float width = 0, float height = 0, bool dynamic = true);
 
     //call draw only after loadMesh and setPhysics !!!
-    void draw(Texture *customtexture = NULL);
+    void draw();
 
     ~Particles(void);
 };

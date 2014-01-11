@@ -120,6 +120,11 @@ void Game::initialize() {
     //player->setPhysics(world,20,40,5.5,5.5);
     player->setHead(head);
 
+    //particles = new Particles();
+    //particles->setProgram(objProgram);
+    //particles->loadMesh("../data/snow.obj");
+    //particles->setPhysics(world,0,0,300,300);
+
     //Set render target
     renderTarget.create(GL_TEXTURE_2D, 4096, 2048);
     viewportSprite.generate(Rect<vec3>(
@@ -145,7 +150,7 @@ void Game::initializeWorldPhysics(){
     world = new b2World(b2Vec2(0.0f, 10*-9.81f));
     world->SetAllowSleeping(true);    
     world->SetContinuousPhysics(true);
-    world->SetContactListener(this); 
+    // world->SetContactListener(this); 
 
 }
 void Game::cleanup() {
@@ -261,7 +266,7 @@ void Game::run() {
         //object.draw();
         float shadowMapMs = 
             static_cast<float>(SDL_GetPerformanceCounter()-shadowMapTime) /
-                               SDL_GetPerformanceFrequency() * 1000.0f;
+            SDL_GetPerformanceFrequency() * 1000.0f;
 
         // Get shadow data
         Uint64 rayTime = SDL_GetPerformanceCounter();
@@ -278,7 +283,7 @@ void Game::run() {
         viewportSprite.draw();
         float rayMs = 
             static_cast<float>(SDL_GetPerformanceCounter()-rayTime) /
-                               SDL_GetPerformanceFrequency() * 1000.0f;
+            SDL_GetPerformanceFrequency() * 1000.0f;
 
         // Final render
         Uint64 renderTime = SDL_GetPerformanceCounter();
@@ -310,11 +315,15 @@ void Game::run() {
         //object.setRotation(vec3(0,time*180,0));
         object.draw();
 
+        //draw snow
+        //particles->setPV(PV);
+        //particles->draw();
+
         player->setPV(PV);
         player->draw();
         float renderMs = 
             static_cast<float>(SDL_GetPerformanceCounter()-renderTime) /
-                               SDL_GetPerformanceFrequency() * 1000.0f;
+            SDL_GetPerformanceFrequency() * 1000.0f;
 
         // Print some text
         font.print("Twoja pozycja:\n\nx:\ny:",0.03,-0.9,0.9);
@@ -336,13 +345,34 @@ void Game::run() {
         // Flip buffers
         SDL_GL_SwapWindow(m_window);
         world->Step(delta,4,4);
+
+        b2Contact * contacts = world->GetContactList();
+
+        for(int i = 0; i < world->GetContactCount(); i++){
+            if(contacts[i].IsTouching()){
+                Object *object1 = (Object*)contacts[i].GetFixtureA()->GetUserData();
+                Object *object2 = (Object*)contacts[i].GetFixtureB()->GetUserData();
+                object1->touched(object2);
+                object2->touched(object1);
+            }
+        }
+
+        b2Body* bodies = world->GetBodyList();
+        for(int i = 0; i< world->GetBodyCount();++i){
+            Object *tmp = static_cast<Object*>(bodies[i].GetUserData());
+            if(true == tmp->isFlagedForDelete()){
+                delete tmp;
+                world->DestroyBody(&bodies[i]);
+            }
+        }
     }
 }
 
 
 void Game::BeginContact(b2Contact * contact){
     Object *object1 = (Object*)contact->GetFixtureA()->GetUserData();
-    Object *object2 = (Object*)contact->GetFixtureB()->GetUserData(); 
+    Object *object2 = (Object*)contact->GetFixtureB()->GetUserData();
+
     object1->touched(object2);
     object2->touched(object1);
 }

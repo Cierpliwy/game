@@ -75,6 +75,8 @@ protected:
     b2Body* body;
     b2World * world;
 
+    bool to_delete;
+
 public:
     Object(const char* mesh_path = NULL);
 
@@ -98,6 +100,9 @@ public:
     virtual void touched(Object * touched_by);
     void setProgram(const Program &program);
     const Program& getProgram() const { return *program;}
+
+    void destroy(){to_delete = true;}
+    bool isFlagedForDelete(){return to_delete;}
 
     void setPV(const glm::mat4 &PV) {this->PV = &PV;}
     const glm::mat4& getPV() const {return *PV;}

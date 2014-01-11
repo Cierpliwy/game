@@ -17,9 +17,6 @@ void Player::touched(Object * touched_by){
 }
 
 void Player::setPhysics(b2World * world, float pos_x, float pos_y, float width, float height, bool dynamic){
-    //Object::setPhysics( world, pos_x, pos_y, width, height,dynamic);
-    this->body->SetBullet(true);
-    //this->body->SetFixedRotation(true);
 }
 
 void Player::moveRight(){

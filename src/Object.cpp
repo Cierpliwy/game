@@ -75,7 +75,7 @@ void Object::setPhysics(b2World * world, float pos_x, float pos_y, float width, 
 
 Object::Object(const char* mesh_path)
     : position(0), rotation(0), scale(1,1,1), program(nullptr), PV(nullptr),
-    PVLocation(0), MLocation(0), texLocation(0), vbo(0), vao(0) {
+    PVLocation(0), MLocation(0), texLocation(0), vbo(0), vao(0), to_delete(false) {
         if(mesh_path){
             this->mesh_path = mesh_path;
         }
@@ -166,4 +166,5 @@ void Object::draw()
 
 Object::~Object(void)
 {
+    
 }

@@ -10,7 +10,7 @@
 #include "RenderTarget.h"
 #include "Font.h"
 #include <Box2D/Box2D.h>
-
+#include "Particles.h"
 
 class Game : public b2ContactListener 
 {
@@ -39,6 +39,7 @@ private:
 
     b2World *world;
     Player *player;
+    Particles *particles;
     Map m_map;
     unsigned int m_mapTarget;
 
