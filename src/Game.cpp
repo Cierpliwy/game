@@ -109,10 +109,16 @@ void Game::initialize() {
     object.setPhysics(world, 15.0f, 40.0f, 5.8f, 5.8f);
     object.setProgram(objProgram);
 
+    Object *head = new Object();
+    head->setProgram(objProgram); 
+    head->loadMesh("../data/head.obj");
+    head->setPhysics(world,20,40,5.5,5.5);
+
     player = new Player();
-    player->setProgram(objProgram);
-    player->loadMesh("../data/head.obj");
-    player->setPhysics(world,20,40,5.5,5.5);
+    //player->setProgram(objProgram);
+    //player->loadMesh("../data/head.obj");
+    //player->setPhysics(world,20,40,5.5,5.5);
+    player->setHead(head);
 
     //Set render target
     renderTarget.create(GL_TEXTURE_2D, 4096, 2048);

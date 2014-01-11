@@ -66,7 +66,7 @@ void Particles::generateParticle(){
 
 void Particles::draw(Texture *customtexture){
 
-    for(vector<Particle>::iterator &it = particles.begin(); it != particles.end(); it++){
+    for(vector<Particle>::iterator it = particles.begin(); it != particles.end(); it++){
         //usuwamy dotkniete
         if(it->wasTouched()){
             it = particles.erase(it);

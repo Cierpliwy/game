@@ -21,11 +21,18 @@ class Player : public Object
     const static int JUMPING_MAX = 6;
     int jump_moves;
     unsigned int lives;
-    Object *left_leg, *right_leg, *torso, *head, *left_arm, *right_arm; 
+    Object *left_leg, *right_leg, *torso, *head, *left_arm, *right_arm;
+    
+    float time_interval;
+    bool mHasFullBody; 
 
 public:
-    Player(){jump_moves = 0; lives = 100;}
-    Player(char * mesh_path);
+    Player();
+
+    float setTimeInterval(float time){time_interval=time;}
+    float getMass();
+    const b2Vec2 getPosition() const {return head->getBody()->GetPosition();}
+    void setPV(const glm::mat4 &PV);
 
     void setLeftLeg(Object *object);
     void setRightLeg(Object *object);
@@ -39,6 +46,7 @@ public:
     void moveRight();
     void moveLeft();
     void jump();
+    void draw();
     void loadCharacterFromObj(const char* filename);
     ~Player(void);
 };

@@ -3,8 +3,9 @@
 #include "Debug.h"
 
 void Object::touched(Object * touched_by){
-
+    
 }
+
 void Object::setPhysics(b2World * world, float pos_x, float pos_y, float width, float height, bool dynamic){
     this->width = width; 
     this->height = height;
@@ -52,19 +53,6 @@ void Object::setPhysics(b2World * world, float pos_x, float pos_y, float width, 
         vertices_to_shape[i].y = vertices_tmp[i].y*scale.y;
     }
 
-#ifdef _WIN32
-    OutputDebugString(" Szerokoœæ ");
-    OutputDebugString(std::to_string(vertices_tmp[2].x - vertices_tmp[0].x).c_str());
-    OutputDebugString(" Wysokoœæ ");
-    OutputDebugString(std::to_string(vertices_tmp[2].y - vertices_tmp[0].y).c_str());
-    OutputDebugString("\n");
-#endif
-
-
-    #ifdef _WIN32
-    OutputDebugString(std::to_string(scale.x).c_str());
-    OutputDebugString("\n");
-#endif
     b2BodyDef bodyDef;
     if(dynamic)
         bodyDef.type = b2_dynamicBody;
@@ -141,7 +129,7 @@ bool Object::loadMesh(const char* mesh_path){
     return true;
 }
 
-void Object::draw(Texture *customtexture)
+void Object::draw()
 {
     const float angle = body->GetAngle();
     //body->get
@@ -155,10 +143,6 @@ void Object::draw(Texture *customtexture)
 
     model = glm::translate(model, glm::vec3(position.x, position.y,0));
     
-    #ifdef _WIN32
-    OutputDebugString(std::to_string(angle).c_str());
-    OutputDebugString("\n");
-#endif
     model = glm::rotate(model, rotation.x, glm::vec3(1.0f,0.0f,0.0f));
     model = glm::rotate(model, rotation.y, glm::vec3(0.0f,1.0f,0.0f));
     model = glm::rotate(model,  angle*180/glm::pi<float>() , glm::vec3(0.0f,0.0f,1.0f));
@@ -171,10 +155,8 @@ void Object::draw(Texture *customtexture)
     glUniformMatrix4fv(MLocation, 1, GL_FALSE, glm::value_ptr(model));
 
     glActiveTexture(GL_TEXTURE0);
-    if (customtexture)
-        glBindTexture(GL_TEXTURE_2D, customtexture->id());
-    else 
-        glBindTexture(GL_TEXTURE_2D, texture.id());
+     
+    glBindTexture(GL_TEXTURE_2D, texture.id());
     glUniform1i(texLocation, 0);
 
     glBindVertexArray(vao);

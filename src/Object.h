@@ -93,7 +93,7 @@ public:
         bool dynamic = true);
 
     //call draw only after loadMesh and setPhysics !!!
-    virtual void draw(Texture *customtexture = NULL);
+    virtual void draw();
 
     virtual void touched(Object * touched_by);
     void setProgram(const Program &program);
@@ -102,7 +102,7 @@ public:
     void setPV(const glm::mat4 &PV) {this->PV = &PV;}
     const glm::mat4& getPV() const {return *PV;}
 
-    const b2Vec2 getPosition() const {return body->GetPosition();}
+    virtual const b2Vec2 getPosition() const {return body->GetPosition();}
 
     void setRotation(const glm::vec3 &rotation){this->rotation = rotation;}
     glm::vec3 getRotation() const {return rotation;}
