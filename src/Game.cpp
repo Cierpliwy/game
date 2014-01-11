@@ -115,15 +115,12 @@ void Game::initialize() {
     head->setPhysics(world,20,40,5.5,5.5);
 
     player = new Player();
-    //player->setProgram(objProgram);
-    //player->loadMesh("../data/head.obj");
-    //player->setPhysics(world,20,40,5.5,5.5);
     player->setHead(head);
 
-    //particles = new Particles();
-    //particles->setProgram(objProgram);
-    //particles->loadMesh("../data/snow.obj");
-    //particles->setPhysics(world,0,0,300,300);
+    particles = new Particles();
+    particles->setProgram(objProgram);
+    particles->loadMesh("../data/snow.obj");
+    particles->setPhysics(world,0,0,300,300);
 
     //Set render target
     renderTarget.create(GL_TEXTURE_2D, 4096, 2048);
@@ -150,7 +147,7 @@ void Game::initializeWorldPhysics(){
     world = new b2World(b2Vec2(0.0f, 10*-9.81f));
     world->SetAllowSleeping(true);    
     world->SetContinuousPhysics(true);
-    // world->SetContactListener(this); 
+    world->SetContactListener(this); 
 
 }
 void Game::cleanup() {
@@ -260,10 +257,10 @@ void Game::run() {
         m_map.draw(Map::MAP | Map::WHITE);
 
         objProgram.use();
-        //glUniform1i(whiteLocation, 1);
-        //object.setPV(PV2);
-        //object.setRotation(vec3(0,time*180,0));
-        //object.draw();
+        glUniform1i(whiteLocation, 1);
+        object.setPV(PV2);
+        object.draw();
+
         float shadowMapMs = 
             static_cast<float>(SDL_GetPerformanceCounter()-shadowMapTime) /
             SDL_GetPerformanceFrequency() * 1000.0f;
@@ -312,7 +309,6 @@ void Game::run() {
         objProgram.use();
         glUniform1i(whiteLocation, 0);
         object.setPV(PV);
-        //object.setRotation(vec3(0,time*180,0));
         object.draw();
 
         //draw snow
@@ -346,24 +342,15 @@ void Game::run() {
         SDL_GL_SwapWindow(m_window);
         world->Step(delta,4,4);
 
-        b2Contact * contacts = world->GetContactList();
-
-        for(int i = 0; i < world->GetContactCount(); i++){
-            if(contacts[i].IsTouching()){
-                Object *object1 = (Object*)contacts[i].GetFixtureA()->GetUserData();
-                Object *object2 = (Object*)contacts[i].GetFixtureB()->GetUserData();
-                object1->touched(object2);
-                object2->touched(object1);
-            }
-        }
-
-        b2Body* bodies = world->GetBodyList();
-        for(int i = 0; i< world->GetBodyCount();++i){
-            Object *tmp = static_cast<Object*>(bodies[i].GetUserData());
+        b2Body* body = world->GetBodyList();
+        
+        while(body != NULL){
+            Object *tmp = static_cast<Object*>(body->GetUserData());
             if(true == tmp->isFlagedForDelete()){
+                world->DestroyBody(body);
                 delete tmp;
-                world->DestroyBody(&bodies[i]);
             }
+            body = body->GetNext();
         }
     }
 }

@@ -160,10 +160,10 @@ void Map::setPhysics(b2World * world){
     b2BodyDef myBodyDef;
     myBodyDef.type = b2_staticBody;
     myBodyDef.position.Set(0, 0); //middle, bottom
+    myBodyDef.userData = this;
     if (body) world->DestroyBody(body);
     body = world->CreateBody(&myBodyDef);
 
-    //b2PolygonShape polygonShape;
     b2EdgeShape edgeShape;
     b2FixtureDef myFixtureDef;
     myFixtureDef.shape = &edgeShape;
