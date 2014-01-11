@@ -249,10 +249,10 @@ void Game::run() {
         m_map.draw(Map::MAP | Map::WHITE);
 
         objProgram.use();
-        glUniform1i(whiteLocation, 1);
-        object.setPV(PV2);
-        object.setRotation(vec3(0,time*180,0));
-        object.draw();
+        //glUniform1i(whiteLocation, 1);
+        //object.setPV(PV2);
+        //object.setRotation(vec3(0,time*180,0));
+        //object.draw();
         float shadowMapMs = 
             static_cast<float>(SDL_GetPerformanceCounter()-shadowMapTime) /
                                SDL_GetPerformanceFrequency() * 1000.0f;
@@ -301,7 +301,7 @@ void Game::run() {
         objProgram.use();
         glUniform1i(whiteLocation, 0);
         object.setPV(PV);
-        object.setRotation(vec3(0,time*180,0));
+        //object.setRotation(vec3(0,time*180,0));
         object.draw();
 
         player->setPV(PV);

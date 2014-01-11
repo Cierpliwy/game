@@ -1,5 +1,7 @@
 #include "Object.h"
 
+#include "Debug.h"
+
 void Object::touched(Object * touched_by){
 
 }
@@ -36,12 +38,6 @@ void Object::setPhysics(b2World * world, float pos_x, float pos_y, float width, 
         }
     }
 
-    b2Vec2 *vertices_to_shape = new b2Vec2[count];
-    for(int i = 0; i<count; ++i){
-        vertices_to_shape[i].x = vertices_tmp[i].x;
-        vertices_to_shape[i].y = vertices_tmp[i].y;
-    }
-
     if(width){
         scale.x = (width)/(vertices_tmp[2].x - vertices_tmp[0].x);
     }
@@ -50,6 +46,25 @@ void Object::setPhysics(b2World * world, float pos_x, float pos_y, float width, 
     }
     scale.z = scale.y;
 
+    b2Vec2 *vertices_to_shape = new b2Vec2[count];
+    for(int i = 0; i<count; ++i){
+        vertices_to_shape[i].x = vertices_tmp[i].x*scale.x;
+        vertices_to_shape[i].y = vertices_tmp[i].y*scale.y;
+    }
+
+#ifdef _WIN32
+    OutputDebugString(" Szerokoœæ ");
+    OutputDebugString(std::to_string(vertices_tmp[2].x - vertices_tmp[0].x).c_str());
+    OutputDebugString(" Wysokoœæ ");
+    OutputDebugString(std::to_string(vertices_tmp[2].y - vertices_tmp[0].y).c_str());
+    OutputDebugString("\n");
+#endif
+
+
+    #ifdef _WIN32
+    OutputDebugString(std::to_string(scale.x).c_str());
+    OutputDebugString("\n");
+#endif
     b2BodyDef bodyDef;
     if(dynamic)
         bodyDef.type = b2_dynamicBody;
@@ -128,7 +143,8 @@ bool Object::loadMesh(const char* mesh_path){
 
 void Object::draw(Texture *customtexture)
 {
-    const float32 angle = body->GetAngle();
+    const float angle = body->GetAngle();
+    //body->get
     const b2Vec2 &position = body->GetPosition();
 
 
@@ -138,11 +154,16 @@ void Object::draw(Texture *customtexture)
     glm::mat4 model(1.0f);
 
     model = glm::translate(model, glm::vec3(position.x, position.y,0));
-    model = glm::scale(model, scale);
-
+    
+    #ifdef _WIN32
+    OutputDebugString(std::to_string(angle).c_str());
+    OutputDebugString("\n");
+#endif
     model = glm::rotate(model, rotation.x, glm::vec3(1.0f,0.0f,0.0f));
     model = glm::rotate(model, rotation.y, glm::vec3(0.0f,1.0f,0.0f));
-    model = glm::rotate(model, rotation.z + angle , glm::vec3(0.0f,0.0f,1.0f));
+    model = glm::rotate(model,  angle*180/glm::pi<float>() , glm::vec3(0.0f,0.0f,1.0f));
+
+    model = glm::scale(model, scale);
 
 
     program->use();
