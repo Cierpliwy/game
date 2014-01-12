@@ -120,7 +120,7 @@ void Game::initialize() {
     particles = new Particles();
     particles->setProgram(objProgram);
     particles->loadMesh("../data/snow.obj");
-    particles->setPhysics(world,0,0,300,300);
+    particles->setPhysics(world,0,0,200,100);
 
     //Set render target
     renderTarget.create(GL_TEXTURE_2D, 4096, 2048);
@@ -148,6 +148,7 @@ void Game::initializeWorldPhysics(){
     world->SetAllowSleeping(true);    
     world->SetContinuousPhysics(true);
     world->SetContactListener(this); 
+    
 
 }
 void Game::cleanup() {
@@ -312,8 +313,8 @@ void Game::run() {
         object.draw();
 
         //draw snow
-        //particles->setPV(PV);
-        //particles->draw();
+        particles->setPV(PV);
+        particles->draw();
 
         player->setPV(PV);
         player->draw();
@@ -343,14 +344,15 @@ void Game::run() {
         world->Step(delta,4,4);
 
         b2Body* body = world->GetBodyList();
-        
+        b2Body* body_tmp;
         while(body != NULL){
             Object *tmp = static_cast<Object*>(body->GetUserData());
+            body_tmp = body->GetNext();
             if(true == tmp->isFlagedForDelete()){
                 world->DestroyBody(body);
                 delete tmp;
             }
-            body = body->GetNext();
+            body = body_tmp;
         }
     }
 }

@@ -176,7 +176,7 @@ void Map::setPhysics(b2World * world){
     } 
 
     //floor below map
-    edgeShape.Set(b2Vec2(-200,-30),b2Vec2(200,-30)); //adding line
+    edgeShape.Set(b2Vec2(-300,-30),b2Vec2(500,-30)); //adding line
     body->CreateFixture(&myFixtureDef); //add a fixture to the body 
 }
 

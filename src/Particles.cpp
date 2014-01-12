@@ -1,8 +1,8 @@
 #include "Particles.h"
 
 
-Particles::Particles(void)
-{
+Particles::Particles(void){
+    srand(time(NULL));
 }
 
 void Particles::setPhysics(b2World * world, float pos_x, float pos_y, float width, float height , bool dynamic){
@@ -54,25 +54,31 @@ void Particles::setPhysics(b2World * world, float pos_x, float pos_y, float widt
     }
 }
 
-void Particles::generateParticle(){
-    //S³aby ale random
-    srand(time(NULL));
+
+b2Vec2 Particles::generateRandomPosition(){
+
     float x = pos_x + (rand() % static_cast<int>(width));
     float y = pos_y + (rand() % static_cast<int>(height));
-    Particle particle;
-    particle.setPhysics(world,x,y);
+    return b2Vec2(x, y);
+}
 
-    particles.push_back(particle);
+void Particles::generateParticle(){
+    b2Vec2 pos = generateRandomPosition();
+
+    particles.push_back(new Particle());
+    particles.back()->setPhysics(world,pos.x,pos.y);
 }
 
 void Particles::draw(){
 
-    for(vector<Particle>::iterator it = particles.begin(); it != particles.end(); it++){
-        //usuwamy dotkniete
-        if(it->wasTouched()){
-            it->destroy();
-            it = particles.erase(it);
-            generateParticle();
+    for(int i = 0; i < particles.size(); i++){
+        //przestawiamy dotkniete
+        if(particles[i]->wasTouched()){
+            //it->destroy();
+            //it = particles.erase(it);
+            particles[i]->resetTouched();
+            particles[i]->setPosition(generateRandomPosition());
+            //generateParticle();
         }
 
 
@@ -81,9 +87,9 @@ void Particles::draw(){
         // Calculate model matrix
         glm::mat4 model(1.0f);
 
-        const b2Vec2 &pos = it->getPosition();
+        const b2Vec2 &pos = particles[i]->getPosition();
         model = glm::translate(model, glm::vec3(pos.x, pos.y,0));
-
+        model = glm::scale(model, scale);
 
         program->use();
         glUniformMatrix4fv(PVLocation, 1, GL_FALSE, glm::value_ptr(*PV));
