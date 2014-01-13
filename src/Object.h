@@ -15,6 +15,12 @@
 
 using namespace std;
 
+class Object;
+class ObjectTouchListener{
+    public:
+    virtual void touched(Object * touched_by) = 0;
+};
+
 //Class that represents actions that can take place while objects will touch
 class ObjectAction{
 
@@ -43,14 +49,20 @@ public:
         this->action = action;
         this->value = value;
     }
+    ObjectAction(TypeOfAction action, string data){
+        this->action = action;
+        this->data = data;
+    }
 
     TypeOfAction getAction(){ return action; } 
     int getValue(){ return value; }
+    string getData(){ return data; }
 };
 
 class Object {
 
     string mesh_path;
+    ObjectTouchListener *listener;
 
 protected:
     GLuint vbo;
@@ -118,6 +130,8 @@ public:
     glm::vec3 getScale() const {return scale;}
 
     Texture & getTexture() { return texture;}
+
+    void setObjectTouchListener(ObjectTouchListener *listener){ this->listener=listener; }
 
     ~Object(void);
 };

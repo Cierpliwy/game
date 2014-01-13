@@ -6,6 +6,7 @@ Player::Player(){
     lives = 100;
     mHasFullBody = false;
     left_leg = right_leg = torso =head =left_arm = right_arm = NULL;
+    torso_to_set = head_to_set = false;
 }
 
 void Player::touched(Object * touched_by){
@@ -13,6 +14,8 @@ void Player::touched(Object * touched_by){
     for(ObjectAction action : actions){
         if(action.getAction() == ObjectAction::TypeOfAction::TERRAIN_TOUCHED)
             jump_moves = 0;
+        else if(action.getAction() == ObjectAction::TypeOfAction::BODY_PART && action.getData() == "torso")
+            setTorso(touched_by);
     }
 }
 
@@ -71,7 +74,12 @@ void Player::setRightLeg(Object *object){
 }
 
 void Player::draw(){
- 
+    if(torso_to_set){
+        torso_to_set = false;
+        setTorsoDelayer(tmp_torso);
+    }
+
+
     if(head) head->draw();
     if(torso) torso->draw();
     if(left_leg) left_leg->draw(); 
@@ -83,28 +91,41 @@ void Player::draw(){
 
 void Player::setPV(const glm::mat4 &PV) {
     if(head) head->setPV(PV);
+    if(torso) torso->setPV(PV);
 }
 
 void Player::setTorso(Object *object){
+   tmp_torso = object;
+   torso_to_set = true;
+}
+
+void Player::setTorsoDelayer(Object* object){
     if(torso!= NULL){
         delete torso;
     }
+
     torso = object;
     b2JointDef jointDef;
 
+    torso->setObjectTouchListener(this);
     jointDef.bodyA = torso->getBody();
     const b2Vec2 &position = torso->getBody()->GetPosition();
     //const b2Vec2 &position = torso->getBody()->get.;
     jointDef.bodyB = head->getBody();
     jointDef.collideConnected = false;
+    
+    
+    head->getBody()->SetTransform(b2Vec2(position.x,position.y),0);
+    torso->getBody()->SetTransform(position,0);
     world->CreateJoint(&jointDef);
 }
+
 void Player::setHead(Object *object){
     if(head != NULL){
         delete head;
     }
     head = object;
-    
+    head->setObjectTouchListener(this);
     this->head->getBody()->SetBullet(true);
 }
 void Player::setLeftArm(Object *object){

@@ -3,6 +3,9 @@
 #include "Debug.h"
 
 void Object::touched(Object * touched_by){
+    if(listener) {
+        listener->touched(touched_by);
+    }
     
 }
 
@@ -75,7 +78,7 @@ void Object::setPhysics(b2World * world, float pos_x, float pos_y, float width, 
 
 Object::Object(const char* mesh_path)
     : position(0), rotation(0), scale(1,1,1), program(nullptr), PV(nullptr),
-    PVLocation(0), MLocation(0), texLocation(0), vbo(0), vao(0), to_delete(false) {
+    PVLocation(0), MLocation(0), texLocation(0), vbo(0), vao(0), to_delete(false),listener(nullptr),mesh_path(), object_actions() {
         if(mesh_path){
             this->mesh_path = mesh_path;
         }
@@ -132,7 +135,6 @@ bool Object::loadMesh(const char* mesh_path){
 void Object::draw()
 {
     const float angle = body->GetAngle();
-    //body->get
     const b2Vec2 &position = body->GetPosition();
 
 

@@ -104,15 +104,19 @@ void Game::initialize() {
     positionLocation = shadowProgram.getUniformLocation("pos");
     sizeLocation = shadowProgram.getUniformLocation("size");
 
-    // cube that has 1.8 meters height and width
-    object.loadMesh("../data/body.obj");
-    object.setPhysics(world, 15.0f, 40.0f, 5.8f, 5.8f);
-    object.setProgram(objProgram);
+
+    Object *torso = new Object();
+    torso->loadMesh("../data/body.obj");
+    torso->setPhysics(world, 15.0f, 40.0f, 5.8f, 5.8f);
+    torso->setProgram(objProgram);
+    torso->addObjectActions(ObjectAction(ObjectAction::TypeOfAction::BODY_PART,"torso"));
+    objects.push_back(torso);
+
 
     Object *head = new Object();
     head->setProgram(objProgram); 
     head->loadMesh("../data/head.obj");
-    head->setPhysics(world,20,40,5.5,5.5);
+    head->setPhysics(world,20,20,5.5,5.5);
 
     player = new Player();
     player->setHead(head);
@@ -148,7 +152,7 @@ void Game::initializeWorldPhysics(){
     world->SetAllowSleeping(true);    
     world->SetContinuousPhysics(true);
     world->SetContactListener(this); 
-    
+
 
 }
 void Game::cleanup() {
@@ -259,8 +263,10 @@ void Game::run() {
 
         objProgram.use();
         glUniform1i(whiteLocation, 1);
-        object.setPV(PV2);
-        object.draw();
+        for(Object *object: objects){
+            object->setPV(PV2);
+            object->draw();
+        }
 
         float shadowMapMs = 
             static_cast<float>(SDL_GetPerformanceCounter()-shadowMapTime) /
@@ -309,8 +315,11 @@ void Game::run() {
         // Draw object
         objProgram.use();
         glUniform1i(whiteLocation, 0);
-        object.setPV(PV);
-        object.draw();
+        for(Object *object: objects){
+            object->setPV(PV);
+            object->draw();
+        }
+
 
         //draw snow
         particles->setPV(PV);

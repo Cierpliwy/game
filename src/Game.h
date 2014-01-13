@@ -56,7 +56,8 @@ private:
     GLuint positionLocation;
     GLuint sizeLocation;
 
-    Object object;
+    vector<Object*> objects; 
+    
     RenderTarget renderTarget;
     RenderTarget shadowTarget;
     Sprite viewportSprite;

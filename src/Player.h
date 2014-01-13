@@ -10,7 +10,7 @@ using namespace std;
 #include "Box2D/Box2D.h"
 #include "Object.h"
 
-class Player : public Object
+class Player : public Object, public ObjectTouchListener
 {
     std::vector< unsigned int > vertexIndices, uvIndices, normalIndices;
     std::vector< glm::vec3 > temp_vertices;
@@ -21,10 +21,16 @@ class Player : public Object
     const static int JUMPING_MAX = 6;
     int jump_moves;
     unsigned int lives;
+
+    bool torso_to_set, head_to_set;
+    Object *tmp_left_leg, *tmp_right_leg, *tmp_torso, *tmp_head, *tmp_left_arm, *tmp_right_arm;
     Object *left_leg, *right_leg, *torso, *head, *left_arm, *right_arm;
     
     float time_interval;
     bool mHasFullBody; 
+
+
+    void setTorsoDelayer(Object* object);
 
 public:
     Player();
@@ -37,6 +43,7 @@ public:
     void setLeftLeg(Object *object);
     void setRightLeg(Object *object);
     void setTorso(Object *object);
+
     void setHead(Object *object);
     void setLeftArm(Object *object);
     void setRightArm(Object *object);
