@@ -71,13 +71,6 @@ void Game::initialize() {
     glDepthFunc(GL_LESS);
     glFrontFace(GL_CW);
 
-    initializeWorldPhysics();
-    // initialize objects below this place
-    // Load fire map by default
-    m_map.init();
-    m_map.load("../data/maps/fire/map");
-    m_map.generate(200.0f, -40.0f, 0.1f); //setPhysics after this !!!!
-    m_map.setPhysics(world);
 
     // Object shader
     objVertex.load("../data/objVertex.glsl");
@@ -104,27 +97,17 @@ void Game::initialize() {
     positionLocation = shadowProgram.getUniformLocation("pos");
     sizeLocation = shadowProgram.getUniformLocation("size");
 
+    world = new World();
+    world->initWorld("../data/maps/fire/map", &objProgram, 200.0f, -40.0f, 0.1f);
 
-    Object *torso = new Object();
-    torso->loadMesh("../data/body.obj");
-    torso->setPhysics(world, 15.0f, 40.0f, 5.8f, 5.8f);
-    torso->setProgram(objProgram);
-    torso->addObjectActions(ObjectAction(ObjectAction::TypeOfAction::BODY_PART,"torso"));
-    objects.push_back(torso);
+    vector<ObjectAction> actions;
+    actions.push_back(ObjectAction(ObjectAction::TypeOfAction::BODY_PART,"torso"));
+    world->addObject("../data/body.obj",15.0f, 40.0f, 5.8f, 5.8f,actions);
+
+    world->setPlayerHead("../data/head.obj",20,20,5.5,5.5);
+    world->setParticles("..data/snow.obj",200,100);
 
 
-    Object *head = new Object();
-    head->setProgram(objProgram); 
-    head->loadMesh("../data/head.obj");
-    head->setPhysics(world,20,20,5.5,5.5);
-
-    player = new Player();
-    player->setHead(head);
-
-    particles = new Particles();
-    particles->setProgram(objProgram);
-    particles->loadMesh("../data/snow.obj");
-    particles->setPhysics(world,0,0,200,100);
 
     //Set render target
     renderTarget.create(GL_TEXTURE_2D, 4096, 2048);
@@ -140,21 +123,8 @@ void Game::initialize() {
 }
 
 Game::~Game(){
-    if(world != NULL){
-        delete world;
-    }
 }
-void Game::initializeWorldPhysics(){
-    if(world != NULL){
-        delete world;
-    }
-    world = new b2World(b2Vec2(0.0f, 10*-9.81f));
-    world->SetAllowSleeping(true);    
-    world->SetContinuousPhysics(true);
-    world->SetContactListener(this); 
 
-
-}
 void Game::cleanup() {
     SDL_GL_DeleteContext(m_context);
     SDL_DestroyWindow(m_window);
@@ -206,15 +176,12 @@ void Game::run() {
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_g)
                 m_mapTarget ^= Map::GRID;
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_c) {
-                m_map.load("../data/maps/cold/map");
-                m_map.generate(200.0f, -40.0f, 0.1f); //setPhysics after this !!!!
-                m_map.setPhysics(world);
+                world->initWorld("../data/maps/cold/map", &objProgram, 200.0f, -40.0f, 0.1f);
                 offset = time;
             }
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_f) {
-                m_map.load("../data/maps/fire/map");
-                m_map.generate(200.0f, -40.0f, 0.1f); //setPhysics after this !!!!
-                m_map.setPhysics(world);
+                world->initWorld("../data/maps/fire/map", &objProgram, 200.0f, -40.0f, 0.1f);
+
                 offset = time;
             }
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_o) {
@@ -224,9 +191,9 @@ void Game::run() {
 
         // Update position 
         const Uint8 *keymap = SDL_GetKeyboardState(NULL);
-        if (keymap[SDL_SCANCODE_W]) player->jump();
-        if (keymap[SDL_SCANCODE_A]) player->moveLeft();
-        if (keymap[SDL_SCANCODE_D]) player->moveRight();
+        if (keymap[SDL_SCANCODE_W]) world->playerJump();
+        if (keymap[SDL_SCANCODE_A]) world->playerMoveLeft();
+        if (keymap[SDL_SCANCODE_D]) world->playerMoveRight();
 
         // Get window ratio
         int w,h;
@@ -234,15 +201,16 @@ void Game::run() {
         float ratio = static_cast<float>(w)/h;
 
         // Basic matrix settings
-        pos.x = player->getPosition().x;
-        pos.y = player->getPosition().y; 
+        const b2Vec2 player_position = world->getPlayerPosition();
+        pos.x = player_position.x;
+        pos.y = player_position.y; 
         pos.y += 2; //Move eye up.
         glm::mat4 projection = glm::perspective(45.0f, ratio, 0.1f,1000.0f);
         glm::mat4 view = glm::lookAt(vec3(pos, 125.0f), vec3(pos, 0.0f), vec3(0,1,0));
         glm::mat4 PV = projection * view;
 
-        glm::mat4 mapProjection = glm::ortho(0.0f,m_map.getWidth(),
-            0.0f,m_map.getHeight(),
+        glm::mat4 mapProjection = glm::ortho(0.0f,world->getMap()->getWidth(),
+            0.0f,world->getMap()->getHeight(),
             -1.0f,1.0f);
         glm::mat4 PV2 = mapProjection;
 
@@ -257,13 +225,13 @@ void Game::run() {
         glBindFramebuffer(GL_FRAMEBUFFER, renderTarget.getFramebuffer());
         glViewport(0,0,4096,2048);
         glClear(GL_COLOR_BUFFER_BIT); 
-        m_map.setPV(PV2);
-        m_map.setVisibility((time-offset));
-        m_map.draw(Map::MAP | Map::WHITE);
+        world->getMap()->setPV(PV2);
+        world->getMap()->setVisibility((time-offset));
+        world->getMap()->draw(Map::MAP | Map::WHITE);
 
         objProgram.use();
         glUniform1i(whiteLocation, 1);
-        for(Object *object: objects){
+        for(Object *object: *(world->getObjects())){
             object->setPV(PV2);
             object->draw();
         }
@@ -283,7 +251,7 @@ void Game::run() {
         glUniform1i(textureLocation, 0);
         glUniform1f(shadowResolutionLocation, 0.1f);
         glUniform2f(positionLocation, pos.x, pos.y);
-        glUniform2f(sizeLocation, m_map.getWidth(), m_map.getHeight());
+        glUniform2f(sizeLocation, world->getMap()->getWidth(), world->getMap()->getHeight());
         viewportSprite.draw();
         float rayMs = 
             static_cast<float>(SDL_GetPerformanceCounter()-rayTime) /
@@ -300,12 +268,12 @@ void Game::run() {
         glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glBindTexture(GL_TEXTURE_1D, 0);
 
-        m_map.setPlayerPos(pos);
-        m_map.setShadowTexture(&shadowTarget.getTexture());
-        m_map.setPV(PV);
-        m_map.setBackgroundX(pos.x/m_map.getWidth());
-        m_map.setBackgroundY(pos.y/m_map.getHeight());
-        m_map.draw(m_mapTarget);
+        world->getMap()->setPlayerPos(pos);
+        world->getMap()->setShadowTexture(&shadowTarget.getTexture());
+        world->getMap()->setPV(PV);
+        world->getMap()->setBackgroundX(pos.x/world->getMap()->getWidth());
+        world->getMap()->setBackgroundY(pos.y/world->getMap()->getHeight());
+        world->getMap()->draw(m_mapTarget);
 
         glBindTexture(GL_TEXTURE_1D, shadowTarget.getTexture().id());
         glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -315,18 +283,20 @@ void Game::run() {
         // Draw object
         objProgram.use();
         glUniform1i(whiteLocation, 0);
-        for(Object *object: objects){
+        for(Object *object: *(world->getObjects())){
             object->setPV(PV);
             object->draw();
         }
 
 
         //draw snow
-        particles->setPV(PV);
-        particles->draw();
+        if(world->hasParticles()){
+            world->getParticles()->setPV(PV);
+            world->getParticles()->draw();
+        }
 
-        player->setPV(PV);
-        player->draw();
+        world->getPlayer()->setPV(PV);
+        world->getPlayer()->draw();
         float renderMs = 
             static_cast<float>(SDL_GetPerformanceCounter()-renderTime) /
             SDL_GetPerformanceFrequency() * 1000.0f;
@@ -350,36 +320,7 @@ void Game::run() {
 
         // Flip buffers
         SDL_GL_SwapWindow(m_window);
-        world->Step(delta,4,4);
 
-        b2Body* body = world->GetBodyList();
-        b2Body* body_tmp;
-        while(body != NULL){
-            Object *tmp = static_cast<Object*>(body->GetUserData());
-            body_tmp = body->GetNext();
-            if(true == tmp->isFlagedForDelete()){
-                world->DestroyBody(body);
-                delete tmp;
-            }
-            body = body_tmp;
-        }
+        world->step(delta);
     }
-}
-
-
-void Game::BeginContact(b2Contact * contact){
-    Object *object1 = (Object*)contact->GetFixtureA()->GetUserData();
-    Object *object2 = (Object*)contact->GetFixtureB()->GetUserData();
-
-    object1->touched(object2);
-    object2->touched(object1);
-}
-
-void Game::EndContact(b2Contact * contact){
-}	
-
-void Game::PostSolve(b2Contact * contact, const b2ContactImpulse * impulse){
-}	
-
-void Game::PreSolve(b2Contact * contact, const b2Manifold * oldManifold){
 }

@@ -95,7 +95,7 @@ public:
     //getObjectActions while touch something 
     const std::vector<ObjectAction> &  getObjectActions(){return object_actions;}
 
-    void addObjectActions(ObjectAction action){object_actions.push_back(action);}
+    void setObjectActions(vector<ObjectAction> actions){object_actions = actions;}
 
     //always load mesh before setting physics !!!
     virtual bool loadMesh(const char* mesh_path = NULL);

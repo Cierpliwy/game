@@ -21,7 +21,7 @@ class Player : public Object, public ObjectTouchListener
     const static int JUMPING_MAX = 6;
     int jump_moves;
     unsigned int lives;
-
+public:
     bool torso_to_set, head_to_set;
     Object *tmp_left_leg, *tmp_right_leg, *tmp_torso, *tmp_head, *tmp_left_arm, *tmp_right_arm;
     Object *left_leg, *right_leg, *torso, *head, *left_arm, *right_arm;
@@ -32,7 +32,7 @@ class Player : public Object, public ObjectTouchListener
 
     void setTorsoDelayer(Object* object);
 
-public:
+//public:
     Player();
 
     float setTimeInterval(float time){time_interval=time;}

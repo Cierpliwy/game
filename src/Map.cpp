@@ -10,7 +10,9 @@ Map::Map() : m_width(0), m_height(0), m_vao(0), m_vbo(0),
     m_gridVao(0), m_gridVbo(0), m_surface(nullptr), m_shadowTex(nullptr),
     body(nullptr)
 {
-    addObjectActions(ObjectAction(ObjectAction::TypeOfAction::TERRAIN_TOUCHED));
+    vector<ObjectAction> actions;
+    actions.push_back(ObjectAction(ObjectAction::TypeOfAction::TERRAIN_TOUCHED));
+    setObjectActions(actions);
 }
 
 Map::~Map(){
