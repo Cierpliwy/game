@@ -10,7 +10,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
+#include "WorldAction.h"
 #include "Program.h"
 
 using namespace std;
@@ -76,6 +76,8 @@ protected:
     std::vector<ObjectVertex> vertices;
     Texture texture;
 
+    WorldActionProvider *world_action_provider;
+
     const Program *program;
     const glm::mat4 *PV;
 
@@ -126,12 +128,15 @@ public:
 
     b2Body * getBody() {return body;}
 
+    float getHeight(){return height;}
+
     void setScale(const glm::vec3 &scale){this->scale = scale;}
     glm::vec3 getScale() const {return scale;}
 
     Texture & getTexture() { return texture;}
 
     void setObjectTouchListener(ObjectTouchListener *listener){ this->listener=listener; }
+    void setWorldActionProvider(WorldActionProvider *provider){ this->world_action_provider = provider;}
 
     ~Object(void);
 };

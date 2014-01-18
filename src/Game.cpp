@@ -102,10 +102,10 @@ void Game::initialize() {
 
     vector<ObjectAction> actions;
     actions.push_back(ObjectAction(ObjectAction::TypeOfAction::BODY_PART,"torso"));
-    world->addObject("../data/body.obj",15.0f, 40.0f, 5.8f, 5.8f,actions);
+    world->addObject("../data/body.obj",15.0f, 40.0f, 4.8f, 4.8f,actions);
 
-    world->setPlayerHead("../data/head.obj",20,20,5.5,5.5);
-    world->setParticles("..data/snow.obj",200,100);
+    world->setPlayerHead("../data/head.obj",20,20,4.5,4.5);
+    world->setParticles("../data/snow.obj",200,100);
 
 
 

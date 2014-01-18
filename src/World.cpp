@@ -1,8 +1,9 @@
 #include "World.h"
 
 
-World::World(void): world(NULL), player(NULL), particles(NULL)
+World::World(void): world(NULL), player(NULL), particles(NULL),m_map()
 {
+
 }
 
 void World::initializeWorldPhysics(){
@@ -31,10 +32,12 @@ void World::initWorld(string map_path, Program *program, float width, float dept
     }
 
     player = new Player();
+    player->setWorldActionProvider(this);
 }
 
 void World::addObject(string mesh_path, float pos_x, float pos_y, float width, float height, vector<ObjectAction> actions ,bool dynamic){
     Object *object = new Object();
+    object->setWorldActionProvider(this);
     object->loadMesh("../data/body.obj");
     object->setPhysics(world, pos_x, pos_y, width, height);
     object->setProgram(*program);
@@ -51,6 +54,25 @@ void World::setParticles(string mesh_path, float width, float height){
 
 void World::step(float step){
 
+    for(WorldAction *action : world_actions){
+        if(action->action == WorldAction::Action::CREATE_JOINT){
+            b2WeldJointDef jointDef;
+
+            //jointDef.bodyA = static_cast<Object*>(action->obj1)->getBody();
+            //jointDef.bodyB = static_cast<Object*>(action->obj1)->getBody();
+            //jointDef.collideConnected = false;
+            static_cast<Object*>(action->obj1)->getBody()->SetTransform(action->pos1->position,action->pos1->angle);
+            static_cast<Object*>(action->obj2)->getBody()->SetTransform(action->pos2->position,action->pos2->angle);
+
+            jointDef.Initialize(static_cast<Object*>(action->obj1)->getBody(), static_cast<Object*>(action->obj2)->getBody(), 
+                static_cast<Object*>(action->obj1)->getBody()->GetWorldCenter());
+
+            world->CreateJoint(&jointDef);
+        }
+    }
+
+    world_actions.empty();
+
     time_step = step;
     world->Step(step,4,4);
 
@@ -61,7 +83,7 @@ void World::step(float step){
         body_tmp = body->GetNext();
         if(true == tmp->isFlagedForDelete()){
             world->DestroyBody(body);
-            delete tmp;
+            //delete tmp;
         }
         body = body_tmp;
     }

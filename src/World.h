@@ -5,10 +5,13 @@
 #include "Player.h"
 #include "Particles.h"
 #include "Map.h"
+#include "WorldAction.h"
 
-class World : public b2ContactListener 
+
+class World : public b2ContactListener , public WorldActionProvider 
 {
-    vector<Object*> objects;
+    vector<WorldAction *> world_actions;
+    vector<Object *> objects;
     b2World *world;
     Player *player;
     Particles *particles;
@@ -40,6 +43,7 @@ public:
     Player* getPlayer(){return player;}
     bool hasParticles(){return particles!=NULL;}
 
+    void addWorldAction(WorldAction *action){world_actions.push_back(action);}
 
     //overloaded functions from b2ContactListener
     void BeginContact(b2Contact * contact);
