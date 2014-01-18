@@ -11,7 +11,9 @@ class Particle : public Object{
     bool mTouched;
 
 public:
-    Particle() : mTouched(false){}
+    Particle() : mTouched(false){
+        setObjectName("particle");
+    }
 
     void setPhysics(b2World *world, float x, float y){
         this->world=world;
@@ -38,7 +40,13 @@ public:
 
     bool wasTouched(){return mTouched;}
     void resetTouched(){mTouched = false;}
-    void touched(Object * touched_by){mTouched = true;}
+    void touched(Object * touched_by){
+        const vector<ObjectAction> &actions = touched_by->getObjectActions();
+        for(ObjectAction action : actions){
+            if(action.getAction() == ObjectAction::TypeOfAction::FLOOR_TOUCHED)
+                mTouched = true;
+        }
+    }
     void setPosition(const b2Vec2 &pos){ body->SetTransform(pos,body->GetAngle());}
 
     ~Particle(){

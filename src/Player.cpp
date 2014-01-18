@@ -11,7 +11,7 @@ Player::Player(){
 void Player::touched(Object * touched_by){
     const vector<ObjectAction> &actions = touched_by->getObjectActions();
     for(ObjectAction action : actions){
-        if(action.getAction() == ObjectAction::TypeOfAction::TERRAIN_TOUCHED)
+        if(action.getAction() == ObjectAction::TypeOfAction::FLOOR_TOUCHED)
             jump_moves = 0;
         else if(action.getAction() == ObjectAction::TypeOfAction::BODY_PART && action.getData() == "torso")
             setTorso(touched_by);
@@ -97,8 +97,8 @@ void Player::setTorso(Object *object){
     const b2Vec2 &position = torso->getBody()->GetPosition();
 
     world_action_provider->addWorldAction(new WorldAction(WorldAction::Action::CREATE_JOINT,
-        head,new WorldAction::Position(b2Vec2(position.x,position.y + torso->getHeight()),0),
-        torso,new WorldAction::Position(b2Vec2(position.x,position.y),0)));
+        head,new WorldAction::Position(b2Vec2(position.x + 1.5,position.y + torso->getHeight()+1.5),0),
+        torso,new WorldAction::Position(b2Vec2(position.x,position.y+0.5),0)));
 }
 
 void Player::setHead(Object *object){

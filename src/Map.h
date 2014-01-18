@@ -167,6 +167,8 @@ private:
     std::vector<Line<glm::vec2> > m_lines;
     std::vector<Object> objects;
 
+    Object * floor;
+    Object * ceiling;
     //physic body
     b2Body* body;
 };

@@ -56,7 +56,7 @@ void World::step(float step){
 
     for(WorldAction *action : world_actions){
         if(action->action == WorldAction::Action::CREATE_JOINT){
-            b2WeldJointDef jointDef;
+            b2DistanceJointDef jointDef;
 
             //jointDef.bodyA = static_cast<Object*>(action->obj1)->getBody();
             //jointDef.bodyB = static_cast<Object*>(action->obj1)->getBody();
@@ -65,7 +65,7 @@ void World::step(float step){
             static_cast<Object*>(action->obj2)->getBody()->SetTransform(action->pos2->position,action->pos2->angle);
 
             jointDef.Initialize(static_cast<Object*>(action->obj1)->getBody(), static_cast<Object*>(action->obj2)->getBody(), 
-                static_cast<Object*>(action->obj1)->getBody()->GetWorldCenter());
+                static_cast<Object*>(action->obj1)->getBody()->GetWorldCenter(), static_cast<Object*>(action->obj2)->getBody()->GetWorldCenter());
 
             world->CreateJoint(&jointDef);
         }
@@ -115,6 +115,15 @@ void World::PostSolve(b2Contact * contact, const b2ContactImpulse * impulse){
 }	
 
 void World::PreSolve(b2Contact * contact, const b2Manifold * oldManifold){
+    
+    string name1 = static_cast<Object *>(contact->GetFixtureA()->GetBody()->GetUserData())->getObjectName();
+    string name2 = static_cast<Object *>(contact->GetFixtureB()->GetBody()->GetUserData())->getObjectName();
+
+    if(name1 == "particle" || name1 == "ceiling"){
+        if(name2 == "particle" || name2 == "ceiling"){
+            contact->SetEnabled(false);
+        }
+    }
 }
 
 World::~World(void)

@@ -32,7 +32,7 @@ public:
         POINT_UP,
         BODY_PART,
         DAMAGE,
-        TERRAIN_TOUCHED,
+        FLOOR_TOUCHED
     };
 
 private:
@@ -63,6 +63,7 @@ class Object {
 
     string mesh_path;
     ObjectTouchListener *listener;
+    string class_name;
 
 protected:
     GLuint vbo;
@@ -114,6 +115,9 @@ public:
     virtual void touched(Object * touched_by);
     void setProgram(const Program &program);
     const Program& getProgram() const { return *program;}
+
+    void setObjectName(string _name) {class_name = _name;}
+    string getObjectName() {return class_name;}
 
     void destroy(){to_delete = true;}
     bool isFlagedForDelete(){return to_delete;}

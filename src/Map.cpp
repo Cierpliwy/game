@@ -10,12 +10,19 @@ Map::Map() : m_width(0), m_height(0), m_vao(0), m_vbo(0),
     m_gridVao(0), m_gridVbo(0), m_surface(nullptr), m_shadowTex(nullptr),
     body(nullptr)
 {
+    floor = new Object();
+    floor->setObjectName("floor");
     vector<ObjectAction> actions;
-    actions.push_back(ObjectAction(ObjectAction::TypeOfAction::TERRAIN_TOUCHED));
-    setObjectActions(actions);
+    actions.push_back(ObjectAction(ObjectAction::TypeOfAction::FLOOR_TOUCHED));
+    floor->setObjectActions(actions);
+
+    ceiling = new Object();
+    ceiling->setObjectName("ceiling");
 }
 
 Map::~Map(){
+    delete floor;
+    delete ceiling;
     free(true);
 }
 
@@ -170,14 +177,20 @@ void Map::setPhysics(b2World * world){
     b2FixtureDef myFixtureDef;
     myFixtureDef.shape = &edgeShape;
     myFixtureDef.density = 1;
-    myFixtureDef.userData = this;
 
     for(Line<glm::vec2> line : m_lines){
         edgeShape.Set(b2Vec2(line.a.x,line.a.y),b2Vec2(line.b.x,line.b.y)); //adding line
+        if(line.floor){
+            myFixtureDef.userData = floor;
+        }else{
+            myFixtureDef.userData = ceiling;
+        }
+
         body->CreateFixture(&myFixtureDef); //add a fixture to the body
     } 
 
     //floor below map
+    myFixtureDef.userData = floor;
     edgeShape.Set(b2Vec2(-300,-30),b2Vec2(500,-30)); //adding line
     body->CreateFixture(&myFixtureDef); //add a fixture to the body 
 }
