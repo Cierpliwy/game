@@ -244,13 +244,13 @@ void Map::generate(float width, float depth, float uvFix)
 
                 // Add collision lines
                 if (!(dir & UP)) 
-                    m_lines.push_back(Line<vec2>(vec2(i,j), vec2(i+1,j)));
+                    m_lines.push_back(Line<vec2>(vec2(i,j), vec2(i+1,j), true));
                 if (!(dir & DOWN)) 
-                    m_lines.push_back(Line<vec2>(vec2(i+1,j+1), vec2(i,j+1)));
+                    m_lines.push_back(Line<vec2>(vec2(i+1,j+1), vec2(i,j+1), false));
                 if (!(dir & LEFT)) 
-                    m_lines.push_back(Line<vec2>(vec2(i,j+1), vec2(i,j)));
+                    m_lines.push_back(Line<vec2>(vec2(i,j+1), vec2(i,j), false));
                 if (!(dir & RIGHT)) 
-                    m_lines.push_back(Line<vec2>(vec2(i+1,j), vec2(i+1,j+1)));
+                    m_lines.push_back(Line<vec2>(vec2(i+1,j), vec2(i+1,j+1), false));
 
             } else {
                 // Try to anti alias edges
@@ -269,9 +269,14 @@ void Map::generate(float width, float depth, float uvFix)
                                       static_cast<unsigned int>(points[2].y));
 
                     // Add collision lines
-                    m_lines.push_back(Line<vec2>(points[0], points[1]));
-                    m_lines.push_back(Line<vec2>(points[1], points[2]));
-                    m_lines.push_back(Line<vec2>(points[2], points[0]));
+                    if (!(sqrPts & DOWNLEFT))
+                        m_lines.push_back(Line<vec2>(points[2], points[0], false));
+                    if (!(sqrPts & DOWNRIGHT))
+                        m_lines.push_back(Line<vec2>(points[1], points[2], false));
+                    if (!(sqrPts & UPLEFT))
+                        m_lines.push_back(Line<vec2>(points[2], points[0], true));
+                    if (!(sqrPts & UPRIGHT))
+                        m_lines.push_back(Line<vec2>(points[0], points[1], true));
                 }
             }
         }
