@@ -27,7 +27,7 @@ class Player : public Object, public ObjectTouchListener
     
     float time_interval;
     bool mHasFullBody; 
-
+    bool human_movability;
 
 public:
     Player();
@@ -44,6 +44,9 @@ public:
     void setHead(Object *object);
     void setLeftArm(Object *object);
     void setRightArm(Object *object);
+
+    bool isBodyComplete();
+    void setHumanMovability(bool _human_movability) { human_movability = _human_movability;}
 
     void setPhysics(b2World * world, float pos_x, float pos_y, float width, float height, bool dynamic = true);
     void touched(Object * touched_by);

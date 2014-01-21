@@ -17,7 +17,7 @@ using namespace std;
 
 class Object;
 class ObjectTouchListener{
-    public:
+public:
     virtual void touched(Object * touched_by) = 0;
 };
 
@@ -26,6 +26,7 @@ class ObjectAction{
 
     int value;
     string data;
+    bool mSingleAction;
 public:
     enum TypeOfAction{
         HEALTH_UP,
@@ -41,15 +42,18 @@ private:
 
 public:
 
-    ObjectAction(TypeOfAction action){
+    ObjectAction(TypeOfAction action, bool single_action = false){
+        mSingleAction = single_action;
         this->action = action;
         value = 0;
     }
-    ObjectAction(TypeOfAction action, int value){
+    ObjectAction(TypeOfAction action, int value,bool single_action = false){
+        mSingleAction = single_action;
         this->action = action;
         this->value = value;
     }
-    ObjectAction(TypeOfAction action, string data){
+    ObjectAction(TypeOfAction action, string data,bool single_action = false){
+        mSingleAction = single_action;
         this->action = action;
         this->data = data;
     }
@@ -57,6 +61,7 @@ public:
     TypeOfAction getAction(){ return action; } 
     int getValue(){ return value; }
     string getData(){ return data; }
+    bool isSingleAction(){return mSingleAction;}
 };
 
 class Object {
@@ -96,8 +101,9 @@ public:
     Object(const char* mesh_path = NULL);
 
     //getObjectActions while touch something 
-    const std::vector<ObjectAction> &  getObjectActions(){return object_actions;}
+    std::vector<ObjectAction> &  getObjectActions(){return object_actions;}
 
+    void deleteObjectActions(){object_actions.empty();}
     void setObjectActions(vector<ObjectAction> actions){object_actions = actions;}
 
     //always load mesh before setting physics !!!
@@ -133,6 +139,7 @@ public:
     b2Body * getBody() {return body;}
 
     float getHeight(){return height;}
+    float getWidth(){return width;}
 
     void setScale(const glm::vec3 &scale){this->scale = scale;}
     glm::vec3 getScale() const {return scale;}

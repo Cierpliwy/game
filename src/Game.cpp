@@ -101,8 +101,12 @@ void Game::initialize() {
     world->initWorld("../data/maps/fire/map", &objProgram, 200.0f, -40.0f, 0.1f);
 
     vector<ObjectAction> actions;
-    actions.push_back(ObjectAction(ObjectAction::TypeOfAction::BODY_PART,"torso"));
+    actions.push_back(ObjectAction(ObjectAction::TypeOfAction::BODY_PART,"torso",true));
     world->addObject("../data/body.obj",15.0f, 40.0f, 4.8f, 4.8f,actions);
+
+    vector<ObjectAction> left_leg_actions;
+    actions.push_back(ObjectAction(ObjectAction::TypeOfAction::BODY_PART, "left_leg", true));
+    world->addObject("../data/foot", 128.0, 67.5, 2.0f, 2.0f, actions);
 
     world->setPlayerHead("../data/head.obj",20,20,4.5,4.5);
     world->setParticles("../data/snow.obj",200,100);

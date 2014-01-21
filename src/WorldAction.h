@@ -17,9 +17,10 @@ struct WorldAction{
     Action action;
     void *obj1, *obj2;
     Position *pos1, *pos2;
+    b2RevoluteJointDef revoluteJointDef;
 
-    WorldAction(Action _action, void* _obj1, Position *_pos1 ,void * _obj2 = NULL, Position *_pos2 = NULL): action(_action),
-     obj1(_obj1), obj2(_obj2), pos1(_pos1), pos2(_pos2){
+    WorldAction(Action _action, void* _obj1, Position *_pos1 ,void * _obj2 , Position *_pos2 , b2RevoluteJointDef joint): action(_action),
+     obj1(_obj1), obj2(_obj2), pos1(_pos1), pos2(_pos2), revoluteJointDef(joint){
     }
 
     ~WorldAction(){

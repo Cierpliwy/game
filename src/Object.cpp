@@ -6,7 +6,6 @@ void Object::touched(Object * touched_by){
     if(listener) {
         listener->touched(touched_by);
     }
-    
 }
 
 void Object::setPhysics(b2World * world, float pos_x, float pos_y, float width, float height, bool dynamic){

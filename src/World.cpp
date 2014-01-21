@@ -54,24 +54,14 @@ void World::setParticles(string mesh_path, float width, float height){
 
 void World::step(float step){
 
-    for(WorldAction *action : world_actions){
-        if(action->action == WorldAction::Action::CREATE_JOINT){
-            b2DistanceJointDef jointDef;
-
-            //jointDef.bodyA = static_cast<Object*>(action->obj1)->getBody();
-            //jointDef.bodyB = static_cast<Object*>(action->obj1)->getBody();
-            //jointDef.collideConnected = false;
-            static_cast<Object*>(action->obj1)->getBody()->SetTransform(action->pos1->position,action->pos1->angle);
-            static_cast<Object*>(action->obj2)->getBody()->SetTransform(action->pos2->position,action->pos2->angle);
-
-            jointDef.Initialize(static_cast<Object*>(action->obj1)->getBody(), static_cast<Object*>(action->obj2)->getBody(), 
-                static_cast<Object*>(action->obj1)->getBody()->GetWorldCenter(), static_cast<Object*>(action->obj2)->getBody()->GetWorldCenter());
-
-            world->CreateJoint(&jointDef);
+    while(world_actions.size()){
+        if(world_actions.back()->action == WorldAction::Action::CREATE_JOINT){
+            static_cast<Object*>(world_actions.back()->obj1)->getBody()->SetTransform(world_actions.back()->pos1->position,world_actions.back()->pos1->angle);
+            static_cast<Object*>(world_actions.back()->obj2)->getBody()->SetTransform(world_actions.back()->pos2->position,world_actions.back()->pos2->angle);
+            world->CreateJoint(&world_actions.back()->revoluteJointDef);
         }
+        world_actions.pop_back();
     }
-
-    world_actions.empty();
 
     time_step = step;
     world->Step(step,4,4);
