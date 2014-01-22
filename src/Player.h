@@ -32,18 +32,18 @@ class Player : public Object, public ObjectTouchListener
 public:
     Player();
 
-    float setTimeInterval(float time){time_interval=time;}
+    void setTimeInterval(float time){time_interval=time;}
     float getMass();
     const b2Vec2 getPosition() const {return head->getBody()->GetPosition();}
     void setPV(const glm::mat4 &PV);
 
-    void setLeftLeg(Object *object);
-    void setRightLeg(Object *object);
-    void setTorso(Object *object);
+    bool setLeftLeg(Object *object);
+    bool setRightLeg(Object *object);
+    bool setTorso(Object *object);
 
-    void setHead(Object *object);
-    void setLeftArm(Object *object);
-    void setRightArm(Object *object);
+    bool setHead(Object *object);
+    bool setLeftArm(Object *object);
+    bool setRightArm(Object *object);
 
     bool isBodyComplete();
     void setHumanMovability(bool _human_movability) { human_movability = _human_movability;}

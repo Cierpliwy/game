@@ -38,7 +38,7 @@ void World::initWorld(string map_path, Program *program, float width, float dept
 void World::addObject(string mesh_path, float pos_x, float pos_y, float width, float height, vector<ObjectAction> actions ,bool dynamic){
     Object *object = new Object();
     object->setWorldActionProvider(this);
-    object->loadMesh("../data/body.obj");
+    object->loadMesh(mesh_path.c_str());
     object->setPhysics(world, pos_x, pos_y, width, height);
     object->setProgram(*program);
     object->setObjectActions(actions);
@@ -59,12 +59,16 @@ void World::step(float step){
             static_cast<Object*>(world_actions.back()->obj1)->getBody()->SetTransform(world_actions.back()->pos1->position,world_actions.back()->pos1->angle);
             static_cast<Object*>(world_actions.back()->obj2)->getBody()->SetTransform(world_actions.back()->pos2->position,world_actions.back()->pos2->angle);
             world->CreateJoint(&world_actions.back()->revoluteJointDef);
+        } else if(world_actions.back()->action == WorldAction::Action::SET_BODY_POSITION){
+            static_cast<Object*>(world_actions.back()->obj1)->getBody()->SetTransform(world_actions.back()->pos1->position,world_actions.back()->pos1->angle);
         }
         world_actions.pop_back();
     }
 
     time_step = step;
     world->Step(step,4,4);
+
+    player->setTimeInterval(step);
 
     b2Body* body = world->GetBodyList();
     b2Body* body_tmp;

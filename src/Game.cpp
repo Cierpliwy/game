@@ -105,8 +105,20 @@ void Game::initialize() {
     world->addObject("../data/body.obj",15.0f, 40.0f, 4.8f, 4.8f,actions);
 
     vector<ObjectAction> left_leg_actions;
-    actions.push_back(ObjectAction(ObjectAction::TypeOfAction::BODY_PART, "left_leg", true));
-    world->addObject("../data/foot", 128.0, 67.5, 2.0f, 2.0f, actions);
+    left_leg_actions.push_back(ObjectAction(ObjectAction::TypeOfAction::BODY_PART, "left_leg", true));
+    world->addObject("../data/foot.obj", 128.0, 67.5, 2.0f, 2.0f, left_leg_actions);
+
+    vector<ObjectAction> right_leg_actions;
+    right_leg_actions.push_back(ObjectAction(ObjectAction::TypeOfAction::BODY_PART, "right_leg", true));
+    world->addObject("../data/foot.obj", 111.0, 28.0, 2.0f, 2.0f, right_leg_actions);
+
+    vector<ObjectAction> right_arm_actions;
+    right_arm_actions.push_back(ObjectAction(ObjectAction::TypeOfAction::BODY_PART, "right_arm", true));
+    world->addObject("../data/hand.obj", 69.0, 14.0, 2.0f, 2.0f, right_arm_actions);
+
+    vector<ObjectAction> left_arm_actions;
+    left_arm_actions.push_back(ObjectAction(ObjectAction::TypeOfAction::BODY_PART, "left_arm", true));
+    world->addObject("../data/hand.obj", 161.0, 22.0, 2.0f, 2.0f, left_arm_actions);
 
     world->setPlayerHead("../data/head.obj",20,20,4.5,4.5);
     world->setParticles("../data/snow.obj",200,100);
