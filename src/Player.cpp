@@ -12,7 +12,7 @@ Player::Player(){
 void Player::touched(Object * touched_by){
     vector<ObjectAction> &actions = touched_by->getObjectActions();
 
-    vector<ObjectAction>::iterator &it = actions.begin();
+    vector<ObjectAction>::iterator it = actions.begin();
     while(it != actions.end()){
         if(it->getAction() == ObjectAction::TypeOfAction::FLOOR_TOUCHED){
             jump_moves = 0;
@@ -108,6 +108,7 @@ bool Player::setLeftLeg(Object *object){
 
     left_leg = object;
     left_leg->setObjectTouchListener(this);
+    left_leg->setCastShadow(false);
 
     const b2Vec2 &torso_position = torso->getBody()->GetPosition();
     b2Vec2 torso_pos(torso_position.x,torso_position.y + left_leg->getHeight());
@@ -149,6 +150,7 @@ bool Player::setRightLeg(Object *object){
 
     right_leg = object;
     right_leg->setObjectTouchListener(this);
+    right_leg->setCastShadow(false);
 
     const b2Vec2 &torso_position = torso->getBody()->GetPosition();
     b2Vec2 torso_pos(torso_position.x,torso_position.y + right_leg->getHeight());
@@ -199,8 +201,9 @@ bool Player::setTorso(Object *object){
         torso->destroy();
     }
     torso = object;
-
+    torso->setCastShadow(false);
     torso->setObjectTouchListener(this);
+
     const b2Vec2 &torso_position = torso->getBody()->GetPosition();
     b2Vec2 head_pos(torso_position.x,torso_position.y + torso->getHeight());
     b2Vec2 torso_pos(torso_position.x,torso_position.y);
@@ -228,6 +231,7 @@ bool Player::setHead(Object *object){
         delete head;
     }
     head = object;
+    head->setCastShadow(false);
     head->setObjectTouchListener(this);
     this->head->getBody()->SetBullet(true);
 
@@ -245,6 +249,7 @@ bool Player::setLeftArm(Object *object){
 
     left_arm = object;
     left_arm->setObjectTouchListener(this);
+    left_arm->setCastShadow(false);
 
     const b2Vec2 &torso_position = torso->getBody()->GetPosition();
     b2Vec2 torso_pos(torso_position.x,torso_position.y);
@@ -285,6 +290,7 @@ bool Player::setRightArm(Object *object){
 
     right_arm = object;
     right_arm->setObjectTouchListener(this);
+    right_arm->setCastShadow(false);
 
     const b2Vec2 &torso_position = torso->getBody()->GetPosition();
     b2Vec2 torso_pos(torso_position.x,torso_position.y);

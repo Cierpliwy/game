@@ -22,8 +22,8 @@ void Game::initialize() {
         throw GameException(GameException::SDL_IMAGE, "Init");
 
     // Use OpenGL version 3
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 
     // Enable double buffering and set depth accuracy to 24 bits
     // for depth buffer.
@@ -82,6 +82,8 @@ void Game::initialize() {
     objProgram.setVertexShader(objVertex);
     objProgram.link();
     whiteLocation = objProgram.getUniformLocation("white");
+    shadowLocation = objProgram.getUniformLocation("shadow");
+    playerPosLocation = objProgram.getUniformLocation("playerPos");
 
     // Shadow shader
     shadowVertex.load("../data/shadowCastVertex.glsl");
@@ -248,8 +250,10 @@ void Game::run() {
         objProgram.use();
         glUniform1i(whiteLocation, 1);
         for(Object *object: *(world->getObjects())){
-            object->setPV(PV2);
-            object->draw();
+            if (object->getCastShadow()) {
+                object->setPV(PV2);
+                object->draw();
+            }
         }
 
         float shadowMapMs = 
@@ -299,6 +303,8 @@ void Game::run() {
         // Draw object
         objProgram.use();
         glUniform1i(whiteLocation, 0);
+        glUniform2f(playerPosLocation, pos.x, pos.y);
+        glUniform1i(shadowLocation, 2);
         for(Object *object: *(world->getObjects())){
             object->setPV(PV);
             object->draw();

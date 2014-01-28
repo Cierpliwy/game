@@ -96,6 +96,7 @@ protected:
     b2World * world;
 
     bool to_delete;
+    bool m_castShadow;
 
 public:
     Object(const char* mesh_path = NULL);
@@ -149,6 +150,13 @@ public:
     void setObjectTouchListener(ObjectTouchListener *listener){ this->listener=listener; }
     void setWorldActionProvider(WorldActionProvider *provider){ this->world_action_provider = provider;}
 
-    ~Object(void);
+    bool getCastShadow() const {
+        return m_castShadow;
+    }
+    void setCastShadow(bool castShadow) {
+        m_castShadow = castShadow;
+    }
+
+    virtual ~Object(void);
 };
 

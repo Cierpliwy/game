@@ -79,7 +79,7 @@ Object::Object(const char* mesh_path)
     : position(0), rotation(0), scale(1,1,1), program(nullptr), PV(nullptr),
     PVLocation(0), MLocation(0), texLocation(0), vbo(0), vao(0), 
     to_delete(false),listener(nullptr) , world_action_provider(NULL),
-    mesh_path(), object_actions()   {
+    mesh_path(), object_actions(), m_castShadow(true) {
         if(mesh_path){
             this->mesh_path = mesh_path;
         }

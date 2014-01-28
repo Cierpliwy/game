@@ -34,6 +34,8 @@ private:
     VertexShader objVertex;
     FragmentShader objFragment;
     GLuint whiteLocation;
+    GLuint playerPosLocation;
+    GLuint shadowLocation;
 
     Program shadowProgram;
     VertexShader shadowVertex;
