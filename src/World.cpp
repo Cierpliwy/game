@@ -49,7 +49,7 @@ void World::setParticles(string mesh_path, float width, float height){
     particles = new Particles();
     particles->setProgram(*program);
     particles->loadMesh(mesh_path.c_str());
-    particles->setPhysics(world,0,0,width,height);
+    particles->setPhysics(world,0,10,width,height);
 }
 
 void World::step(float step){
@@ -115,6 +115,7 @@ void World::PreSolve(b2Contact * contact, const b2Manifold * oldManifold){
 
     if(name1 == "particle" || name1 == "ceiling"){
         if(name2 == "particle" || name2 == "ceiling"){
+        
             contact->SetEnabled(false);
         }
     }

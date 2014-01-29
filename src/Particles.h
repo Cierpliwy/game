@@ -6,6 +6,7 @@
 
 #define PARTICLES_PER_METER 1
 #define RADIUS_OF_PARTICLE 0.5
+#include "Debug.h"
 
 class Particle : public Object{
     bool mTouched;
@@ -42,9 +43,11 @@ public:
     void resetTouched(){mTouched = false;}
     void touched(Object * touched_by){
         const vector<ObjectAction> &actions = touched_by->getObjectActions();
+
         for(ObjectAction action : actions){
-            if(action.getAction() == ObjectAction::TypeOfAction::FLOOR_TOUCHED)
+            if(action.getAction() == ObjectAction::TypeOfAction::FLOOR_TOUCHED){
                 mTouched = true;
+            }
         }
     }
     void setPosition(const b2Vec2 &pos){ body->SetTransform(pos,body->GetAngle());}

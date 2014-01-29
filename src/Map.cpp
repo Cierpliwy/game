@@ -10,6 +10,8 @@ Map::Map() : m_width(0), m_height(0), m_vao(0), m_vbo(0),
     m_gridVao(0), m_gridVbo(0), m_surface(nullptr), m_shadowTex(nullptr),
     body(nullptr)
 {
+    this->setObjectName("map"); // only to inform 
+
     floor = new Object();
     floor->setObjectName("floor");
     vector<ObjectAction> actions;
@@ -169,9 +171,14 @@ void Map::setPhysics(b2World * world){
     b2BodyDef myBodyDef;
     myBodyDef.type = b2_staticBody;
     myBodyDef.position.Set(0, 0); //middle, bottom
-    myBodyDef.userData = this;
+    myBodyDef.userData = ceiling;
     if (body) world->DestroyBody(body);
     body = world->CreateBody(&myBodyDef);
+
+    ceiling->setBody(world->CreateBody(&myBodyDef));
+    
+    myBodyDef.userData = floor;
+    floor->setBody(world->CreateBody(&myBodyDef)); 
 
     b2EdgeShape edgeShape;
     b2FixtureDef myFixtureDef;
@@ -182,11 +189,11 @@ void Map::setPhysics(b2World * world){
         edgeShape.Set(b2Vec2(line.a.x,line.a.y),b2Vec2(line.b.x,line.b.y)); //adding line
         if(line.floor){
             myFixtureDef.userData = floor;
+            floor->getBody()->CreateFixture(&myFixtureDef);
         }else{
             myFixtureDef.userData = ceiling;
+            ceiling->getBody()->CreateFixture(&myFixtureDef);
         }
-
-        body->CreateFixture(&myFixtureDef); //add a fixture to the body
     } 
 
     //floor below map
