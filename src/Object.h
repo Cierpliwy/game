@@ -138,6 +138,12 @@ public:
     glm::vec3 getRotation() const {return rotation;}
 
     b2Body * getBody() {return body;}
+    void setBody(b2Body * _body){
+        if(body){
+            body->Dump();//TODO check this
+        }
+        body = _body;
+    }
 
     float getHeight(){return height;}
     float getWidth(){return width;}
@@ -146,6 +152,8 @@ public:
     glm::vec3 getScale() const {return scale;}
 
     Texture & getTexture() { return texture;}
+
+    
 
     void setObjectTouchListener(ObjectTouchListener *listener){ this->listener=listener; }
     void setWorldActionProvider(WorldActionProvider *provider){ this->world_action_provider = provider;}
