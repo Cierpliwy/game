@@ -144,7 +144,7 @@ void Object::draw()
     // Calculate model matrix
     glm::mat4 model(1.0f);
 
-    model = glm::translate(model, glm::vec3(position.x, position.y,0));
+    model = glm::translate(model, glm::vec3(position.x, position.y,-20));
     
     model = glm::rotate(model, rotation.x, glm::vec3(1.0f,0.0f,0.0f));
     model = glm::rotate(model, rotation.y, glm::vec3(0.0f,1.0f,0.0f));

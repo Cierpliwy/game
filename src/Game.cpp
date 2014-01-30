@@ -32,7 +32,7 @@ void Game::initialize() {
 
     // Create SDL window
     m_window = SDL_CreateWindow("Gra", SDL_WINDOWPOS_CENTERED, 
-        SDL_WINDOWPOS_CENTERED, 800, 600, 
+        SDL_WINDOWPOS_CENTERED, 1280, 720, 
         SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );//| SDL_WINDOW_FULLSCREEN);
     if (!m_window) 
         throw GameException(GameException::SDL, "Window");
@@ -47,7 +47,7 @@ void Game::initialize() {
         throw GameException(GameException::SDL, "Context");
 
     // Enable v-sync
-    SDL_GL_SetSwapInterval(0);
+    SDL_GL_SetSwapInterval(1);
 
     // Load OpenGL by getting functions bodies (for Windows)
     glewExperimental = GL_TRUE;
@@ -229,7 +229,7 @@ void Game::run() {
 
         glm::mat4 mapProjection = glm::ortho(0.0f,world->getMap()->getWidth(),
             0.0f,world->getMap()->getHeight(),
-            -1.0f,1.0f);
+            -50.0f,50.0f);
         glm::mat4 PV2 = mapProjection;
 
         // Use this matrix for setting model's position in a world
@@ -280,7 +280,7 @@ void Game::run() {
         // Final render
         Uint64 renderTime = SDL_GetPerformanceCounter();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glViewport(0,0,800,600);
+        glViewport(0,0,1280,720);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glBindTexture(GL_TEXTURE_1D, shadowTarget.getTexture().id());
@@ -293,7 +293,7 @@ void Game::run() {
         world->getMap()->setPV(PV);
         world->getMap()->setBackgroundX(pos.x/world->getMap()->getWidth());
         world->getMap()->setBackgroundY(pos.y/world->getMap()->getHeight());
-        world->getMap()->draw(m_mapTarget);
+        world->getMap()->draw(m_mapTarget ^ Map::SPRITES);
 
         glBindTexture(GL_TEXTURE_1D, shadowTarget.getTexture().id());
         glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -319,6 +319,10 @@ void Game::run() {
 
         world->getPlayer()->setPV(PV);
         world->getPlayer()->draw();
+
+        //Draw sprites
+        world->getMap()->draw(m_mapTarget & Map::SPRITES);
+
         float renderMs = 
             static_cast<float>(SDL_GetPerformanceCounter()-renderTime) /
             SDL_GetPerformanceFrequency() * 1000.0f;

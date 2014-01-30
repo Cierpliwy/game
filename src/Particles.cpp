@@ -49,7 +49,7 @@ void Particles::setPhysics(b2World * world, float pos_x, float pos_y, float widt
     scale.z = scale.y;
 
 
-    for(int i = 0; i < 20 ; ++i){
+    for(int i = 0; i < 100 ; ++i){
         generateParticle();
     }
 }
@@ -88,7 +88,7 @@ void Particles::draw(){
         glm::mat4 model(1.0f);
 
         const b2Vec2 &pos = particles[i]->getPosition();
-        model = glm::translate(model, glm::vec3(pos.x, pos.y,0));
+        model = glm::translate(model, glm::vec3(pos.x, pos.y,-20));
         model = glm::scale(model, scale);
 
         program->use();
