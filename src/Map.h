@@ -69,6 +69,9 @@ public:
     // Set player position
     void setPlayerPos(glm::vec2 pos) {m_playerPos = pos;}
 
+    //is map completed
+    bool isCompleted(){return mCompleted;}
+
 private:
 
     // Map vertex
@@ -171,6 +174,7 @@ private:
     Object * ceiling;
     //physic body
     b2Body* body;
+    bool mCompleted;
 };
 
 #endif //MAP_H

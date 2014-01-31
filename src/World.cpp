@@ -46,6 +46,9 @@ void World::addObject(string mesh_path, float pos_x, float pos_y, float width, f
 }
 
 void World::setParticles(string mesh_path, float width, float height){
+    if(particles){
+        delete particles;
+    }
     particles = new Particles();
     particles->setProgram(*program);
     particles->loadMesh(mesh_path.c_str());
@@ -125,5 +128,13 @@ World::~World(void)
 {
     if(world != NULL){
         delete world;
+    }
+
+    if(particles){
+        delete particles;
+    }
+
+    if(player){
+        delete player;
     }
 }

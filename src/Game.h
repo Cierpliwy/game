@@ -20,6 +20,8 @@ public:
     void initialize();
     void run();
     void cleanup();
+    void initIceWorld();
+    void initLavaWorld();
 
 private:
     		

@@ -99,32 +99,7 @@ void Game::initialize() {
     positionLocation = shadowProgram.getUniformLocation("pos");
     sizeLocation = shadowProgram.getUniformLocation("size");
 
-    world = new World();
-    world->initWorld("../data/maps/fire/map", &objProgram, 200.0f, -40.0f, 0.1f);
-
-    vector<ObjectAction> actions;
-    actions.push_back(ObjectAction(ObjectAction::TypeOfAction::BODY_PART,"torso",true));
-    world->addObject("../data/body.obj",15.0f, 40.0f, 4.8f, 4.8f,actions);
-
-    vector<ObjectAction> left_leg_actions;
-    left_leg_actions.push_back(ObjectAction(ObjectAction::TypeOfAction::BODY_PART, "left_leg", true));
-    world->addObject("../data/foot.obj", 128.0, 67.5, 2.0f, 2.0f, left_leg_actions);
-
-    vector<ObjectAction> right_leg_actions;
-    right_leg_actions.push_back(ObjectAction(ObjectAction::TypeOfAction::BODY_PART, "right_leg", true));
-    world->addObject("../data/foot.obj", 111.0, 28.0, 2.0f, 2.0f, right_leg_actions);
-
-    vector<ObjectAction> right_arm_actions;
-    right_arm_actions.push_back(ObjectAction(ObjectAction::TypeOfAction::BODY_PART, "right_arm", true));
-    world->addObject("../data/hand.obj", 69.0, 14.0, 2.0f, 2.0f, right_arm_actions);
-
-    vector<ObjectAction> left_arm_actions;
-    left_arm_actions.push_back(ObjectAction(ObjectAction::TypeOfAction::BODY_PART, "left_arm", true));
-    world->addObject("../data/hand.obj", 161.0, 22.0, 2.0f, 2.0f, left_arm_actions);
-
-    world->setPlayerHead("../data/head.obj",20,20,4.5,4.5);
-    world->setParticles("../data/snow.obj",200,100);
-
+    initIceWorld();
 
 
     //Set render target
@@ -149,6 +124,62 @@ void Game::cleanup() {
 
     IMG_Quit();
     SDL_Quit();
+}
+
+void Game::initLavaWorld(){
+    world = new World();
+    world->initWorld("../data/maps/fire/map", &objProgram, 200.0f, -40.0f, 0.1f);
+
+    vector<ObjectAction> actions;
+    actions.push_back(ObjectAction(ObjectAction::TypeOfAction::BODY_PART,"torso",true));
+    world->addObject("../data/body.obj",15.0f, 40.0f, 4.8f, 4.8f,actions);
+
+    vector<ObjectAction> left_leg_actions;
+    left_leg_actions.push_back(ObjectAction(ObjectAction::TypeOfAction::BODY_PART, "left_leg", true));
+    world->addObject("../data/foot.obj", 128.0, 67.5, 2.0f, 2.0f, left_leg_actions);
+
+    vector<ObjectAction> right_leg_actions;
+    right_leg_actions.push_back(ObjectAction(ObjectAction::TypeOfAction::BODY_PART, "right_leg", true));
+    world->addObject("../data/foot.obj", 111.0, 28.0, 2.0f, 2.0f, right_leg_actions);
+
+    vector<ObjectAction> right_arm_actions;
+    right_arm_actions.push_back(ObjectAction(ObjectAction::TypeOfAction::BODY_PART, "right_arm", true));
+    world->addObject("../data/hand.obj", 69.0, 14.0, 2.0f, 2.0f, right_arm_actions);
+
+    vector<ObjectAction> left_arm_actions;
+    left_arm_actions.push_back(ObjectAction(ObjectAction::TypeOfAction::BODY_PART, "left_arm", true));
+    world->addObject("../data/hand.obj", 161.0, 22.0, 2.0f, 2.0f, left_arm_actions);
+
+    world->setPlayerHead("../data/head.obj",20,20,4.5,4.5);
+    //world->setParticles("../data/snow.obj",200,100); // maybe some Lava particles ?
+}
+void Game::initIceWorld(){
+    world = new World();
+    world->initWorld("../data/maps/cold/map", &objProgram, 200.0f, -40.0f, 0.1f);
+
+    vector<ObjectAction> actions;
+    actions.push_back(ObjectAction(ObjectAction::TypeOfAction::BODY_PART,"torso",true));
+    world->addObject("../data/body.obj",8.0f, 63.0f, 4.8f, 4.8f,actions);
+
+    vector<ObjectAction> left_leg_actions;
+    left_leg_actions.push_back(ObjectAction(ObjectAction::TypeOfAction::BODY_PART, "left_leg", true));
+    world->addObject("../data/foot.obj", 10.0, 88.5, 2.0f, 2.0f, left_leg_actions);
+
+    vector<ObjectAction> right_leg_actions;
+    right_leg_actions.push_back(ObjectAction(ObjectAction::TypeOfAction::BODY_PART, "right_leg", true));
+    world->addObject("../data/foot.obj", 41.0, 60.5, 2.0f, 2.0f, right_leg_actions);
+    
+    vector<ObjectAction> right_arm_actions;
+    right_arm_actions.push_back(ObjectAction(ObjectAction::TypeOfAction::BODY_PART, "right_arm", true));
+    world->addObject("../data/hand.obj", 136.0, 86.0, 2.0f, 2.0f, right_arm_actions);
+
+    vector<ObjectAction> left_arm_actions;
+    left_arm_actions.push_back(ObjectAction(ObjectAction::TypeOfAction::BODY_PART, "left_arm", true));
+    world->addObject("../data/hand.obj", 110.0, 36.0, 2.0f, 2.0f, left_arm_actions);
+
+    world->setPlayerHead("../data/head.obj",24,10,4.5,4.5);
+    world->setParticles("../data/snow.obj",200,100);
+
 }
 
 void Game::run() {
@@ -193,15 +224,6 @@ void Game::run() {
                 m_mapTarget ^= Map::SPRITES;
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_g)
                 m_mapTarget ^= Map::GRID;
-            if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_c) {
-                world->initWorld("../data/maps/cold/map", &objProgram, 200.0f, -40.0f, 0.1f);
-                offset = time;
-            }
-            if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_f) {
-                world->initWorld("../data/maps/fire/map", &objProgram, 200.0f, -40.0f, 0.1f);
-
-                offset = time;
-            }
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_o) {
                 offset = time;
             }
@@ -348,5 +370,12 @@ void Game::run() {
         SDL_GL_SwapWindow(m_window);
 
         world->step(delta);
+
+        static bool change = true; 
+        if(change && world->isLevelCompleted()){
+            //delete world;
+            initLavaWorld();
+            change = false;
+        }
     }
 }
