@@ -15,8 +15,6 @@ void main(void) {
                        charSize*floor(char/16.0) + charSize*outUV.y);
     vec4 color = texture(tex, charUV);
 
-    if (color.a < 0.1) discard;
-
     if (black) {
         outColor = vec4(0,0,0,color.a);
         return;

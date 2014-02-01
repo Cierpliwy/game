@@ -15,7 +15,7 @@ public:
     Game() : 
         m_window(NULL), m_context(NULL), m_exit(false), 
         m_mapTarget(Map::MAP | Map::SPRITES | Map::BACKGROUND),
-        screenWidth(800), screenHeight(600)
+        screenWidth(1280), screenHeight(720)
     {}
     ~Game();
     void initialize();
@@ -25,6 +25,8 @@ public:
     void initLavaWorld();
     void initChipWorld();
     void renderMap(float delta, float time);
+    void renderStart(float delta, float time);
+    void renderEnd(float delta, float time);
 
 private:
     		
@@ -58,11 +60,14 @@ private:
     unsigned screenHeight;
 
     float mapStartTime;
-    
+    float finalResult;
+
     enum class MapType {
+        NONE,
         LAVA,
         ICE,
-        CHIP
+        CHIP,
+        RESULT
     };
 
     MapType currentMap;

@@ -13,7 +13,7 @@ using namespace glm;
 void Game::initialize() {
 
     // Initialize SDL library
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) 
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) 
         throw GameException(GameException::SDL, "Init");
 
     // Initialize SDL_image library
@@ -114,7 +114,7 @@ void Game::initialize() {
 
     //Init first map
     initIceWorld();
-    currentMap = MapType::ICE;
+    currentMap = MapType::NONE;
     mapStartTime = 0;
 }
 
@@ -252,11 +252,67 @@ void Game::run() {
                 m_mapTarget ^= Map::SPRITES;
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_g)
                 m_mapTarget ^= Map::GRID;
+            if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_RETURN &&
+                currentMap == MapType::NONE) 
+                currentMap = MapType::ICE;
         }
 
-        renderMap(delta, time);
-
+        if (currentMap == MapType::NONE)
+            renderStart(delta, time);
+        else if(currentMap == MapType::RESULT)
+            renderEnd(delta, time);
+        else renderMap(delta, time);
     }
+}
+
+void Game::renderStart(float, float time)
+{
+    // Set clear color
+    glClearColor(0,0,0,0);
+    glClear(GL_COLOR_BUFFER_BIT); 
+
+    // Time
+    font.setTime(time);
+    float size = screenWidth / 38;
+    font.print("Rules of the game are very simple:\n\n"
+               "\x9 Collect all of yours body parts.\n"
+               "\x9 Remember to collect trunk first.\n"
+               "\x9 Arrows will show you direction\n"
+               "  where other parts are placed.\n"
+               "\x9 Use W,A,D key to move and jump.\n"
+               "\x9 Do everything as fast as possible!\n",
+               size, size, 
+               screenHeight - size*2);
+
+    float size2 = size * (1+sin(time*10)/100);
+    string enterString = "Press ENTER key to begin...";
+    font.print(enterString, size2, (screenWidth-enterString.size()*size2)/2, 30);
+
+    // Flip buffers
+    SDL_GL_SwapWindow(m_window);
+}
+
+void Game::renderEnd(float, float time)
+{
+    // Set clear color
+    glClearColor(0,0,0,0);
+    glClear(GL_COLOR_BUFFER_BIT); 
+
+    // Time
+    font.setTime(time);
+    float size = screenWidth / 20;
+    string finalString = "Final result:";
+    font.print(finalString, size, (screenWidth-size*finalString.size())/2, 
+               (screenHeight+size*2)/2);
+
+    float size2 = size * (1+sin(time*10)/100);
+    string scoreString = to_string(finalResult);
+    font.print(scoreString, size2, 
+            (screenWidth-scoreString.size()*size2)/2,
+            (screenHeight-size*2)/2);
+
+    // Flip buffers
+    SDL_GL_SwapWindow(m_window);
 }
 
 void Game::renderMap(float delta, float time)
@@ -404,21 +460,24 @@ void Game::renderMap(float delta, float time)
 
     world->step(delta);
 
-    static bool change = true; 
-    if(change && world->isLevelCompleted()){
+    if(world->isLevelCompleted()){
         //delete world;
         switch(currentMap) {
             case MapType::ICE:
                 initLavaWorld();
+                currentMap = MapType::LAVA;
                 break;
             case MapType::LAVA:
                 initChipWorld();
+                currentMap = MapType::CHIP;
                 break;
             case MapType::CHIP:
-                //end
+                currentMap = MapType::RESULT;
+                finalResult = time;
+                break;
+            default:
                 break;
         }
         mapStartTime = time;
-        change = false;
     }
 }
