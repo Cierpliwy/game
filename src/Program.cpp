@@ -63,7 +63,10 @@ void Program::setFragmentShader(const FragmentShader &fragment) {
 }
 
 void Program::use() const {
-    glUseProgram(m_id);
+    GLint currentProgram;
+    glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
+    if (static_cast<GLint>(m_id) != currentProgram)
+        glUseProgram(m_id);
 }
 
 GLuint Program::getUniformLocation(const char *name) const

@@ -22,7 +22,7 @@ private:
 
     const VertexShader* m_vertex;
     const FragmentShader* m_fragment;
-    GLenum m_id;
+    GLuint m_id;
 };
 
 #endif //PROGRAM_H

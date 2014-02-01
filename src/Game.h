@@ -14,7 +14,8 @@ class Game
 public:
     Game() : 
         m_window(NULL), m_context(NULL), m_exit(false), 
-        m_mapTarget(Map::MAP | Map::SPRITES | Map::BACKGROUND)
+        m_mapTarget(Map::MAP | Map::SPRITES | Map::BACKGROUND),
+        screenWidth(800), screenHeight(600)
     {}
     ~Game();
     void initialize();
@@ -22,6 +23,8 @@ public:
     void cleanup();
     void initIceWorld();
     void initLavaWorld();
+    void initChipWorld();
+    void renderMap(float delta, float time);
 
 private:
     		
@@ -50,6 +53,19 @@ private:
     RenderTarget renderTarget;
     RenderTarget shadowTarget;
     Sprite viewportSprite;
+
+    unsigned screenWidth;
+    unsigned screenHeight;
+
+    float mapStartTime;
+    
+    enum class MapType {
+        LAVA,
+        ICE,
+        CHIP
+    };
+
+    MapType currentMap;
 
     Font font;
 };

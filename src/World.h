@@ -42,7 +42,7 @@ public:
     Map* getMap(){return &m_map;}
     Player* getPlayer(){return player;}
     bool hasParticles(){return particles!=NULL;}
-    bool isLevelCompleted() {return (/*m_map.isCompleted()*/ true && player->isBodyComplete());}
+    bool isLevelCompleted() {return player->isBodyComplete();}
 
     void addWorldAction(WorldAction *action){world_actions.push_back(action);}
 

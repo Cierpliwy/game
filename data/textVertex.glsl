@@ -5,9 +5,11 @@ in vec2 in2UV;
 uniform mat4 PVM;
 
 out vec2 outUV;
+out vec4 outPos;
 
 void main(void)
 {
 	outUV = in2UV;
-    gl_Position = PVM * vec4(in1Pos,1); 
+    outPos = PVM * vec4(in1Pos,1); 
+    gl_Position = outPos;
 }
