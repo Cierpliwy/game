@@ -30,10 +30,17 @@ void Game::initialize() {
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
+    // Get screen resolution
+    SDL_DisplayMode mode;
+    if (SDL_GetDisplayMode(0,0,&mode) != 0)
+        throw GameException(GameException::SDL, "Resolution");
+    screenWidth = mode.w;
+    screenHeight = mode.h;
+
     // Create SDL window
     m_window = SDL_CreateWindow("Gra", SDL_WINDOWPOS_CENTERED, 
         SDL_WINDOWPOS_CENTERED, screenWidth, screenHeight, 
-        SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );//| SDL_WINDOW_FULLSCREEN);
+        SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN);
     if (!m_window) 
         throw GameException(GameException::SDL, "Window");
 
@@ -253,8 +260,10 @@ void Game::run() {
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_g)
                 m_mapTarget ^= Map::GRID;
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_RETURN &&
-                currentMap == MapType::NONE) 
+                currentMap == MapType::NONE) {
                 currentMap = MapType::ICE;
+                mapStartTime = time;
+            }
         }
 
         if (currentMap == MapType::NONE)
@@ -355,7 +364,7 @@ void Game::renderMap(float delta, float time)
     glViewport(0,0,1024,512);
     glClear(GL_COLOR_BUFFER_BIT); 
     world->getMap()->setPV(PV2);
-    world->getMap()->setVisibility((time-mapStartTime)/2);
+    world->getMap()->setVisibility((time-mapStartTime)/3);
     world->getMap()->draw(Map::MAP | Map::WHITE);
 
     objProgram.use();
